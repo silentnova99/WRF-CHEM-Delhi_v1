@@ -75,6 +75,78 @@ def test_cpcb_csv_parse(tmp_path):
     assert pm25 and pm25[0].value == 182.4
 
 
+def test_cpcb_govin_parse():
+    from aqf_delhi.config import load_ingest, load_ops
+    from aqf_delhi.sources.cpcb import CPCBConnector
+
+    conn = CPCBConnector(load_ingest().cpcb, load_ops())
+    records = [
+        {
+            "country": "India", "state": "Delhi", "city": "Delhi",
+            "station": "Anand Vihar, Delhi - DPCC",
+            "last_update": "12-09-2026 18:00:00",
+            "latitude": "28.6461", "longitude": "77.3161",
+            "pollutant_id": "PM2.5", "min_value": "170", "max_value": "195",
+            "avg_value": "182.5",
+        },
+        {
+            "country": "India", "state": "Delhi", "city": "Delhi",
+            "station": "IHBAS, Dilshad Garden, Delhi - CPCB",
+            "last_update": "12-09-2026 18:00:00",
+            "latitude": "28.651", "longitude": "77.277",
+            "pollutant_id": "OZONE", "min_value": "20", "max_value": "28",
+            "avg_value": "23",
+        },
+        {
+            "country": "India", "state": "Bihar", "city": "Rajgir",
+            "station": "Dangi Tola, Rajgir - BSPCB",
+            "last_update": "12-09-2026 18:00:00",
+            "latitude": "25.03", "longitude": "85.42",
+            "pollutant_id": "CO", "avg_value": "43",
+        },
+        {
+            "country": "India", "state": "Delhi", "city": "Delhi",
+            "station": "Anand Vihar, Delhi - DPCC",
+            "last_update": "12-09-2026 18:00:00",
+            "latitude": "28.6461", "longitude": "77.3161",
+            "pollutant_id": "DEPOSIT", "avg_value": "12",
+        },
+    ]
+    rows = conn._parse_govin_records(
+        records, _stations(), asof=datetime(2026, 9, 12, 12, tzinfo=timezone.utc),
+        ingest_ts=datetime(2026, 9, 12, 12, tzinfo=timezone.utc),
+    )
+    assert len(rows) == 2  # Rajgir out-of-registry and DEPOSIT dropped
+    anand = [r for r in rows if r.station_name == "Anand Vihar"]
+    assert anand and anand[0].metric == "PM2.5" and anand[0].value == 182.5
+    assert anand[0].unit == "ug/m3"
+    assert anand[0].source_api_ver == "data_govin_aqi"
+    assert anand[0].observed_at_utc == datetime(2026, 9, 12, 18, 0, tzinfo=timezone.utc)
+    ozone = [r for r in rows if r.metric == "O3"]
+    assert ozone and ozone[0].station_name == "IHBAS Dilshad Garden"
+
+
+def test_cpcb_govin_fails_without_key(monkeypatch):
+    from aqf_delhi.config import load_ingest, load_ops
+    from aqf_delhi.sources.cpcb import CPCBConnector
+    from aqf_delhi.sources.base import FetchError
+
+    monkeypatch.delenv("DATA_GOVIN_API_KEY", raising=False)
+    conn = CPCBConnector(load_ingest().cpcb, load_ops())
+    with pytest.raises(FetchError):
+        conn._data_govin_strategy(_stations(), datetime.now(timezone.utc))
+
+
+def test_cpcb_govin_filter_params():
+    from aqf_delhi.config import load_ingest, load_ops
+    from aqf_delhi.sources.cpcb import CPCBConnector
+
+    cfg = load_ingest().cpcb
+    conn = CPCBConnector(cfg, load_ops())
+    state = conn.cfg.data_govin
+    assert state.filters["state"] == ["Delhi", "Haryana", "Uttar Pradesh"]
+
+
 def test_validate_firms():
     from aqf_delhi.config import load_ingest, load_ops
     from aqf_delhi.pipeline.validate import validate_firms

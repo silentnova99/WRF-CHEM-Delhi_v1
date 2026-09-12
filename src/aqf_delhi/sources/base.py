@@ -55,6 +55,7 @@ def fetch_with_failover(
     stream: bool = False,
     timeout: float | None = None,
     chunked: bool = False,
+    verify: bool = True,
 ) -> FetchResult:
     """Try ``base_endpoints`` in order; per candidate retry with backoff."""
     from aqf_delhi.sources.base import FetchError  # noqa: F401  (re-export convenience)
@@ -79,6 +80,7 @@ def fetch_with_failover(
                     json=json_body,
                     timeout=timeout,
                     stream=stream,
+                    verify=verify,
                 )
                 if resp.status_code >= 500 or resp.status_code in (429, 403, 408):
                     raise requests.HTTPError(

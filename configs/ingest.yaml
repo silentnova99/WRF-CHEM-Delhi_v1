@@ -32,6 +32,18 @@ sources:
   cpcb:
     enabled: true
     poll_interval_minutes: 15
+    data_govin:
+      api_key_env: "DATA_GOVIN_API_KEY"
+      resource_id: "3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69"
+      base_url: "https://api.data.gov.in/resource"
+      page_size: 10000          # sample key caps at 10/page; full key up to 10000
+      max_pages: 200            # ceiling guard (sample keys page 10 at a time)
+      page_delay_seconds: 0.6   # polite pacing — avoid shared-key 429 rate limits
+      filters:                  # repeated values = OR; widens NCR coverage → more data
+        state:
+          - "Delhi"
+          - "Haryana"
+          - "Uttar Pradesh"
     endpoints:             # ordered failover chain (mirrors rotate)
       - "https://airquality.cpcb.gov.in/CAAQM/AqiDataLink/GetData"
       - "https://app.cpcbccr.com/AQI_Data/AQI_Data.csv"

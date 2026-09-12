@@ -82,12 +82,23 @@ class GFSEndpointConfig(BaseModel):
         return list(range(self.fhr_start, self.fhr_end + 1, self.fhr_step))
 
 
+class DataGovinConfig(BaseModel):
+    api_key_env: str = "DATA_GOVIN_API_KEY"
+    resource_id: str = "3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69"
+    base_url: str = "https://api.data.gov.in/resource"
+    page_size: int = Field(default=10000, ge=1, le=10000)
+    max_pages: int = Field(default=200, ge=1)
+    page_delay_seconds: float = Field(default=0.6, ge=0.0)
+    filters: dict[str, str | list[str]] = Field(default_factory=dict)
+
+
 class CPcbConfig(BaseModel):
     enabled: bool = True
     poll_interval_minutes: int = 15
     endpoints: list[str]
     fallback_ttl_hours: int = 6
     min_station_coverage: float = Field(default=0.6, ge=0.0, le=1.0)
+    data_govin: DataGovinConfig = DataGovinConfig()
 
 
 class FirmsCollection(BaseModel):

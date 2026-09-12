@@ -2,7 +2,7 @@
 
     python scripts/backfill.py gfs    --days 8   # last N days, 4 cycles/day
     python scripts/backfill.py firms  --days 7   # needs FIRMS_MAP_KEY
-    python scripts/backfill.py cpcb   --days 3   # needs a reachable CPCB endpoint
+    python scripts/backfill.py cpcb   --days 3   # needs DATA_GOVIN_API_KEY
 
 Run blocks are idempotent: completed partitions are skipped.
 """
@@ -64,19 +64,27 @@ def backfill_firms(days: int) -> None:
 
 
 def backfill_cpcb(days: int) -> None:
+    import os
+
     import requests
 
     from aqf_delhi.config import load_ingest
     from aqf_delhi.pipeline.orchestrate import Orchestrator
 
     cfg = load_ingest()
-    endpoint = cfg.cpcb.endpoints[0]
+    key = os.environ.get(cfg.cpcb.data_govin.api_key_env)
+    probe = f"{cfg.cpcb.data_govin.base_url}/{cfg.cpcb.data_govin.resource_id}"
+    if not key:
+        print(f"[cpcb] BLOCKED: {cfg.cpcb.data_govin.api_key_env} not set — get a key "
+              "from https://data.gov.in (My Account) and re-run.")
+        return
     try:
-        requests.get(endpoint, timeout=5)
+        requests.get(probe, params={"api-key": key, "format": "json", "limit": "1"},
+                     headers={"User-Agent": "Mozilla/5.0"}, timeout=15)
     except Exception as exc:
-        print(f"[cpcb] BLOCKED: configured endpoint unreachable ({endpoint}): "
+        print(f"[cpcb] BLOCKED: data.gov.in unreachable ({probe}): "
               f"{type(exc).__name__}: {exc}")
-        print("[cpcb] provide a working CAAQM GetData endpoint or an aqicn.org token.")
+        print("[cpcb] the HTTPS-API may be rate-limiting the sample key (HTTP 429); wait and retry.")
         return
     orch = Orchestrator()
     done = skipped = 0

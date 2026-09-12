@@ -18,8 +18,9 @@ CPCB* ──────┘      (parquet)     │  (met + plume +   ├─Modul
                                  └─────────────────────────────────────────▶ data/{coupled|forecasts}/
 ```
 
-> \* CPCB live ground-truth is a known TODO — the dashboard/API mount points are
-> ready; the public endpoint is currently unavailable (see [Roadmap](#roadmap)).
+> \* CPCB live ground-truth now ingests through the **data.gov.in OGD API**
+> (CPCB "Real time Air Quality Index" resource); a CPCB Sameer/CCR mirror tier
+> is wired as fallback. See [Ingestion](#ingestion).
 
 ## Modules
 
@@ -47,7 +48,7 @@ on Linux install the system library first (`libeccodes-dev`).
 ## Quickstart
 
 ```bash
-# 1) full offline test suite (44 tests, no network)
+# 1) full offline test suite (47 tests, no network)
 pytest
 
 # 2) Module-2: coupled emulator
@@ -68,10 +69,20 @@ map; the state aggregation endpoint (`/dashboard/state`) is fully local.
 ## Ingestion
 
 ```bash
-python scripts/run_ingest.py cpcb      # live CPCB poll (endpoint currently dead)
+python scripts/run_ingest.py cpcb      # data.gov.in OGD (set DATA_GOVIN_API_KEY)
 python scripts/run_ingest.py firms     # FIRMS (export FIRMS_MAP_KEY)
 python scripts/run_ingest.py gfs       # GFS availability probe + manifest
 ```
+
+Get a data.gov.in API key from your **My Account** page
+(https://data.gov.in) and export it as `DATA_GOVIN_API_KEY`. The published
+sample key works but is shared → capped at 10 records/request and prone to
+HTTP 429; a personal key returns up to 10 000 rows in one page. CPCB polling
+tries three tiers in order:
+
+1. **data.gov.in** OGD resource (paginated, per-pollutant rows for Delhi + NCR states);
+2. **CAAQM GetData** mirror (self-signed TLS — certificate checks relaxed for this tier);
+3. **AQI digest CSV** (currently retired server-side).
 
 ```text
 data/ingest/{source}/{YYYY-MM-DD}/{run_id}/records.parquet
@@ -143,7 +154,7 @@ pytest                        # offline, deterministic (network never required)
 pytest tests/test_module2.py  # per-module
 ```
 
-44 tests: 7 ingest · 9 Module-3 · 5 Module-4 · 18 Module-2 · 5 Module-5.
+47 tests: 10 ingest · 9 Module-3 · 5 Module-4 · 18 Module-2 · 5 Module-5.
 Disable plugin autoload if `pytest-html` breaks collection:
 
 ```bash
@@ -184,7 +195,7 @@ tests/         offline pytest suite
 - [x] Module-3 ST-GNN + XGBoost bias correction
 - [x] Module-4 geospatial API
 - [x] Module-5 3D WebGIS dashboard
-- [ ] CPCB live ground-truth ingestion (public endpoint currently unavailable)
+- [x] CPCB live ground-truth ingestion (data.gov.in OGD resource live; CAAQM mirror fallback)
 - [ ] Replace PM2.5 emulator kernel with a full WRF-Chem solver run
 - [ ] Operational scheduler (GFS cycle-triggered forecast + publish)
 
