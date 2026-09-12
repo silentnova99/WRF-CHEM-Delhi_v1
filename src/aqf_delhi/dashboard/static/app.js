@@ -1,38 +1,60 @@
 /* Module-5 3D WebGIS dashboard (MapLibre GL).
- * Consumes /dashboard/state → coupled PM2.5 hour grids (canvas overlay),
- * 3D extruded cells, met overlay lines, fire points, station towers/popups
- * and the Module-3 forecast summary.
+ * Consumes /dashboard/state → coupled PM2.5/PM10/O3 hour grids rendered with
+ * CPCB-style AQI severity colours (green→yellow→orange→red→maroon) that
+ * update with the time slider; plus 3D extruded cells, met overlays, fire
+ * points and station towers/popups, and the Module-3 forecast summary.
  */
 (() => {
   const PATH_STATE = "/dashboard/state";
   const CDN_OK = typeof maplibregl !== "undefined";
 
-  const VIRIDIS = [
-    [68, 1, 84], [71, 26, 111], [65, 50, 118], [55, 73, 120],
-    [46, 91, 122], [38, 113, 121], [32, 117, 119], [28, 139, 108],
-    [35, 154, 88], [63, 169, 72], [109, 181, 54], [157, 190, 44],
-    [197, 194, 37], [224, 190, 30], [253, 231, 37], [250, 244, 63],
-  ];
+  // CPCB / World-air-quality severity bands (µg/m³ upper bound, inclusive).
+  const BANDS = {
+    pm25_raw: [
+      { name: "Good",      max: 30, color: [0, 228, 0] },
+      { name: "Satisfactory", max: 60, color: [255, 255, 0] },
+      { name: "Moderate",  max: 90, color: [255, 126, 0] },
+      { name: "Poor",      max: 120, color: [255, 0, 0] },
+      { name: "Very poor", max: 250, color: [143, 63, 151] },
+      { name: "Severe",    max: Infinity, color: [126, 0, 35] },
+    ],
+    pm10_raw: [
+      { name: "Good",      max: 50, color: [0, 228, 0] },
+      { name: "Satisfactory", max: 100, color: [255, 255, 0] },
+      { name: "Moderate",  max: 250, color: [255, 126, 0] },
+      { name: "Poor",      max: 350, color: [255, 0, 0] },
+      { name: "Very poor", max: 430, color: [143, 63, 151] },
+      { name: "Severe",    max: Infinity, color: [126, 0, 35] },
+    ],
+    o3_raw: [
+      { name: "Good",      max: 50, color: [0, 228, 0] },
+      { name: "Satisfactory", max: 100, color: [255, 255, 0] },
+      { name: "Moderate",  max: 168, color: [255, 126, 0] },
+      { name: "Poor",      max: 208, color: [255, 0, 0] },
+      { name: "Very poor", max: 748, color: [143, 63, 151] },
+      { name: "Severe",    max: Infinity, color: [126, 0, 35] },
+    ],
+  };
 
   const app = {
     state: null, map: null,
     hourIdx: 0, model: "map", field: "pm25_raw", met: "none",
   };
 
-  const colorT = (t) => {
-    t = Math.min(1, Math.max(0, t));
-    const x = t * (VIRIDIS.length - 1);
-    const i = Math.min(VIRIDIS.length - 2, Math.floor(x));
-    const f = x - i;
-    const a = VIRIDIS[i], b = VIRIDIS[i + 1];
-    return [
-      Math.round(a[0] + (b[0] - a[0]) * f),
-      Math.round(a[1] + (b[1] - a[1]) * f),
-      Math.round(a[2] + (b[2] - a[2]) * f),
-    ];
+  const bandsFor = () => BANDS[app.field] || BANDS.pm25_raw;
+
+  const bandOf = (v) => {
+    const bands = bandsFor();
+    for (let i = 0; i < bands.length; i++) {
+      if (v <= bands[i].max) return { idx: i, band: bands[i] };
+    }
+    const last = bands[bands.length - 1];
+    return { idx: bands.length - 1, band: last };
   };
 
-  const rgb = (c) => "rgb(" + c[0] + "," + c[1] + "," + c[2] + ")";
+  const bandToCss = (band, alpha) =>
+    "rgb(" + band.color[0] + "," + band.color[1] + "," + band.color[2] +
+    (alpha ? "," + alpha + ")" : ")");
 
   const nodes = () => ({
     xs: app.state.coupled.lon_nodes,
@@ -57,6 +79,7 @@
         if (v > hi) hi = v;
       }
     }
+    if (!isFinite(lo) || !isFinite(hi)) { lo = 0; hi = 1; }
     if (lo === hi) hi = lo + 1;
     return { lo, hi };
   };
@@ -64,7 +87,6 @@
   const pmCanvas = () => {
     const h = current();
     const { ny, nx } = gridDims();
-    const { lo, hi } = range();
     const cv = document.createElement("canvas");
     cv.width = nx; cv.height = ny;
     const ctx = cv.getContext("2d");
@@ -72,10 +94,10 @@
     for (let j = 0; j < ny; j++) {
       for (let i = 0; i < nx; i++) {
         const v = h[app.field][j * nx + i];
-        const c = colorT((v - lo) / (hi - lo));
+        const b = bandOf(v).band;
         const idx = (j * nx + i) * 4;
-        img.data[idx] = c[0]; img.data[idx + 1] = c[1];
-        img.data[idx + 2] = c[2]; img.data[idx + 3] = 215;
+        img.data[idx] = b.color[0]; img.data[idx + 1] = b.color[1];
+        img.data[idx + 2] = b.color[2]; img.data[idx + 3] = 215;
       }
     }
     ctx.putImageData(img, 0, 0);
@@ -86,16 +108,17 @@
     const h = current();
     const { ny, nx } = gridDims();
     const { xs, ys } = nodes();
-    const { hi } = range();
     const feats = [];
     for (let j = 0; j < ny - 1; j++) {
       for (let i = 0; i < nx - 1; i++) {
         const v = h[app.field][j * nx + i];
         if (!(v > 0)) continue;
-        const height = Math.max(60, (v / hi) * 1600);
+        const b = bandOf(v);
+        // tower height rises with severity category so "how red" is visible 3-D
+        const height = 140 + b.idx * 230;
         feats.push({
           type: "Feature",
-          properties: { color: rgb(colorT(v / hi)), height },
+          properties: { color: bandToCss(b.band), height },
           geometry: { type: "Polygon", coordinates: [[
             [xs[i], ys[j]], [xs[i + 1], ys[j]],
             [xs[i + 1], ys[j + 1]], [xs[i], ys[j + 1]]]] },
@@ -113,19 +136,16 @@
     if (app.met === "wind") {
       for (let j = 0; j < ny; j += 2) {
         for (let i = 0; i < nx; i += 2) {
-          const spd = last.ws10_ms[j * nx + i];
           const dir = ((last.wd_deg[j * nx + i] || 0) * Math.PI) / 180;
           const dx = Math.sin(dir) * 0.05, dy = Math.cos(dir) * 0.05;
           feats.push({
-            type: "Feature",
-            properties: { speed: spd },
+            type: "Feature", properties: {},
             geometry: { type: "LineString", coordinates: [
               [xs[i], ys[j]], [xs[i] + dx, ys[j] + dy]] },
           });
         }
       }
     } else if (app.met === "pblh" || app.met === "t2m") {
-      const col = app.met === "pblh" ? "pblh_m" : "t2m_c";
       for (let j = 0; j < ny; j++) {
         for (let i = 0; i < nx; i++) {
           feats.push({
@@ -134,28 +154,31 @@
           });
         }
       }
-      return { feats, col };
+      return { feats, col: app.met === "pblh" ? "pblh_m" : "t2m_c" };
     }
     return { feats, col: null };
   };
 
   const stationTowers = () => {
-    const feats = (app.state.stations || [])
-      .filter((s) => s.pm25_raw > 0)
-      .map((s) => {
-        const hmax = Math.max(1, ...(app.state.stations || []).map((x) => x.pm25_raw || 0));
+    const st = app.state.stations || [];
+    const maxV = Math.max(1, ...st.map((s) => s.pm25_raw || 0));
+    return {
+      type: "FeatureCollection",
+      features: st.map((s) => {
+        const v = s.pm25_raw || 0;
+        const b = bandOf(v);
         return {
           type: "Feature",
           properties: {
             station_id: s.station_id || "",
-            pm: s.pm25_raw || 0,
-            height: Math.max(80, ((s.pm25_raw || 0) / hmax) * 1800),
+            pm: v,
+            color: bandToCss(b.band),
+            height: Math.max(80, ((v || 0) / maxV) * 1800),
           },
           geometry: { type: "Point", coordinates: [s.lon, s.lat] },
         };
-      })
-      .map((f) => ({ ...f, properties: { ...f.properties, color: "#1e88e5" } }));
-    return { type: "FeatureCollection", features: feats };
+      }),
+    };
   };
 
   /* ------------------------------------------------------- layers ------ */
@@ -189,11 +212,11 @@
       paint: { "line-color": "#111", "line-width": 1.4, "line-opacity": 0.85 } });
     map.addLayer({ id: "met-pts", type: "circle", source: "met",
       paint: { "circle-radius": 3, "circle-color": "#111", "circle-opacity": 0.8 },
-      layout: { visibility: app.met === "t2m" || app.met === "pblh" ? "visible" : "none" } });
+      layout: { visibility: "none" } });
 
     map.addSource("towers", { type: "geojson", data: emptyFC() });
     map.addLayer({ id: "towers", type: "fill-extrusion", source: "towers",
-      paint: { "fill-extrusion-color": ["get", "color"], "fill-extrusion-height": ["get", "height"], "fill-extrusion-opacity": 0.5 },
+      paint: { "fill-extrusion-color": ["get", "color"], "fill-extrusion-height": ["get", "height"], "fill-extrusion-opacity": 0.55 },
       layout: { visibility: "none" } });
   }
 
@@ -217,15 +240,14 @@
       })),
     });
 
-    const stationFC = {
+    map.getSource("stations").setData({
       type: "FeatureCollection",
       features: (app.state.stations || []).map((s) => ({
         type: "Feature",
-        properties: { station_id: s.station_id, pm: s.pm25_raw },
+        properties: { station_id: s.station_id, pm: s.pm25_raw || 0 },
         geometry: { type: "Point", coordinates: [s.lon, s.lat] },
       })),
-    };
-    map.getSource("stations").setData(stationFC);
+    });
     map.getSource("towers").setData(stationTowers());
 
     vis(map, "pm25-raster", app.model === "map");
@@ -245,22 +267,36 @@
   const vis = (map, id, show) =>
     map.setLayoutProperty(id, "visibility", show ? "visible" : "none");
 
+  function severityStyle(v) {
+    const b = bandOf(v);
+    return b.band.name + " " + v.toFixed(1) + " µg·m⁻³";
+  }
+
   function drawLegend() {
-    const cv = document.getElementById("legend");
-    if (!cv) return;
+    const host = document.getElementById("legend-bands");
+    if (!host) return;
     const name = { pm25_raw: "PM2.5", pm10_raw: "PM10",
                    o3_raw: "O3", pm25_obs_demo: "PM2.5 obs" }[app.field] || app.field;
-    document.getElementById("legend-title").textContent = name + " µg·m⁻³";
-    const ctx = cv.getContext("2d");
-    const g = ctx.createLinearGradient(0, 0, cv.width, 0);
-    for (let i = 0; i <= 10; i++) g.addColorStop(i / 10, rgb(colorT(i / 10)));
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, cv.width, cv.height);
+    document.getElementById("legend-title").textContent = name + " · AQI severity";
+    let prev = 0;
+    host.innerHTML = bandsFor().map((b) => {
+      const rangeTxt = prev + "–" + (b.max === Infinity ? "+" : b.max);
+      const html =
+        `<div class="band-row">` +
+        `<span class="chip" style="background:${bandToCss(b)}"></span>` +
+        `<b>${b.name}</b><span>${rangeTxt}</span></div>`;
+      prev = b.max === Infinity ? b.max : b.max + 1;
+      return html;
+    }).join("");
     const { lo, hi } = range();
     document.getElementById("lmin").textContent = lo.toFixed(0);
     document.getElementById("lmax").textContent = hi.toFixed(0);
     document.getElementById("tlabel").textContent =
       app.state.coupled.times[app.hourIdx] || "";
+    const cur = current()[app.field];
+    const worst = bandOf(Math.max(...cur)).band;
+    document.getElementById("bandline").textContent =
+      "worst: " + worst.name;
   }
 
   function updateStats() {
@@ -356,7 +392,8 @@
       const p = e.features[0].properties;
       new maplibregl.Popup({ offset: 20 })
         .setLngLat(e.lngLat)
-        .setHTML(`<b>${p.station_id}</b><br/>PM2.5 raw: <b>${p.pm.toFixed(1)}</b> µg·m⁻³`)
+        .setHTML(`<b>${p.station_id}</b><br/>${severityStyle(p.pm)} ` +
+                 `<div style="color:#888">·</div>selected hour ${app.state.coupled.times[app.hourIdx]}`)
         .addTo(app.map);
     });
   }
