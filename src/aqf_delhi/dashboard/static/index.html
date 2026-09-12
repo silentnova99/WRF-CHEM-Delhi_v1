@@ -8,7 +8,17 @@
   <link rel="stylesheet" href="/dashboard/styles.css" />
 </head>
 <body>
-  <div id="map"></div>
+  <div id="map">
+    <div id="map-clock"><b id="tlabel">—</b></div>
+    <div id="map-legend">
+      <div class="legend-title" id="legend-title">PM2.5 · AQI severity</div>
+      <div id="legend-bands"></div>
+      <div class="axis-row">
+        <span>data <b id="lmin">0</b>–<b id="lmax">0</b> µg·m⁻³</span>
+        <span id="bandline">—</span>
+      </div>
+    </div>
+  </div>
 
   <aside id="panel">
     <header>
@@ -43,16 +53,7 @@
       <div id="runinfo">loading…</div>
       <input id="slider" type="range" min="0" max="0" value="0" />
       <div class="axis-row">
-        <span>init</span><span id="tlabel">—</span><span>+72h</span>
-      </div>
-    </section>
-
-    <section class="card legend-card">
-      <div class="legend-title" id="legend-title">PM2.5 · AQI severity</div>
-      <div id="legend-bands"></div>
-      <div class="axis-row">
-        <span>data <b id="lmin">0</b>–<b id="lmax">0</b> µg·m⁻³</span>
-        <span id="bandline">—</span>
+        <span>init</span><span>forecast hours →</span><span>+72h</span>
       </div>
     </section>
 

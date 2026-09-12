@@ -20,6 +20,43 @@ html, body {
 
 #map { position: fixed; inset: 0 320px 0 0; }
 
+#map-clock {
+  position: absolute;
+  top: 10px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  pointer-events: none;
+  background: rgba(12, 21, 33, 0.82);
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+}
+#map-clock b { color: #fff; font-weight: 600; }
+
+#map-legend {
+  position: absolute;
+  left: 12px; bottom: 34px;
+  z-index: 10;
+  pointer-events: none;
+  width: 178px;
+  background: rgba(12, 21, 33, 0.85);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  backdrop-filter: blur(3px);
+}
+#map-legend .legend-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+#map-legend .axis-row { margin-top: 5px; }
+
 #panel {
   position: fixed;
   top: 0; right: 0; bottom: 0;
