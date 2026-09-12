@@ -1,0 +1,22 @@
+# Domain configuration — Delhi NCR 4 km resolution modelling domain
+# (aligns with Module-2 grid spec from the system blueprint)
+
+domain:
+  name: "delhi_ncr_4km"
+  lat_min: 28.2
+  lat_max: 29.0
+  lon_min: 76.8
+  lon_max: 77.6
+  dx_km: 4.0
+  dy_km: 4.0
+  # Derived grid dimensions (lat 0.8 deg ≈ 89 km, lon 0.8 deg ≈ 78 km at 28.6N):
+  # nx ≈ 20, ny ≈ 22 — computed programmatically, not hardcoded.
+  crs: "EPSG:4326"
+  timezone: "Asia/Kolkata"
+
+# Operational tuning knobs (Phase-1)
+ops:
+  log_level: "INFO"
+  retries: 3
+  retry_backoff_seconds: 2.0
+  request_timeout_seconds: 60

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Delhi NCR AQF — 3D WebGIS Dashboard</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" />
+  <link rel="stylesheet" href="/dashboard/styles.css" />
+</head>
+<body>
+  <div id="map"></div>
+
+  <aside id="panel">
+    <header>
+      <h1>Delhi NCR AQF</h1>
+      <p class="sub">coupled WRF-Chem emulator · 3D WebGIS</p>
+    </header>
+
+    <section class="card">
+      <label>Pollutant layer</label>
+      <select id="field">
+        <option value="pm25_raw">PM2.5 raw (simulated)</option>
+        <option value="pm25_obs_demo">PM2.5 obs-like</option>
+      </select>
+      <label>View</label>
+      <select id="model">
+        <option value="map">2D map</option>
+        <option value="ext">3D extruded cells</option>
+        <option value="tower">3D station towers</option>
+      </select>
+      <label>Met overlay</label>
+      <select id="met">
+        <option value="none">none</option>
+        <option value="wind">10 m wind</option>
+        <option value="pblh">PBL height</option>
+        <option value="t2m">2 m temperature</option>
+      </select>
+    </section>
+
+    <section class="card" id="runbox">
+      <div id="runinfo">loading…</div>
+      <input id="slider" type="range" min="0" max="0" value="0" />
+      <div class="axis-row">
+        <span>init</span><span id="tlabel">—</span><span>+72h</span>
+      </div>
+    </section>
+
+    <section class="card legend-card">
+      <div class="legend-title">PM2.5 µg·m⁻³</div>
+      <canvas id="legend" width="180" height="14"></canvas>
+      <div class="axis-row">
+        <span id="lmin">0</span><span id="lmax">0</span>
+      </div>
+    </section>
+
+    <section class="card" id="stats"></section>
+
+    <footer>
+      GFS 0.25° · FRP fire emissions · Freitas plume rise ·
+      forecast: <span id="fc">—</span>
+    </footer>
+  </aside>
+
+  <div id="offline" class="hidden">No network — CDN assets unavailable; grid overlays still render locally.</div>
+
+  <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+  <script src="/dashboard/app.js"></script>
+</body>
+</html>

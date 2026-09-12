@@ -1,0 +1,65 @@
+# -------- Byte-compiled / cache --------
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.pyc/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+*.egg-info/
+.eggs/
+build/
+dist/
+wheels/
+
+# -------- Virtual environments --------
+.venv/
+venv/
+env/
+ENV/
+
+# -------- Data, secrets & local config --------
+data/
+secrets/
+keys/
+.env
+.env.*
+!.env.example
+*.local
+*.pem
+*.key
+*.crt
+
+# -------- Notebooks / scratch --------
+.ipynb_checkpoints/
+notebooks/.local/
+*.ipynb
+
+# -------- ML / model artifacts --------
+*.pkl
+*.joblib
+*.onnx
+*.pt
+*.h5
+models/
+
+# -------- Tooling & IDEs --------
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# -------- Logs --------
+*.log
+logs/
+
+# -------- OS --------
+Thumbs.db
+.DS_Store
+desktop.ini

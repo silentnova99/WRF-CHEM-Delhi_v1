@@ -1,0 +1,57 @@
+# Module-2 coupled WRF-Chem emulator config.
+#
+# Consumes real GFS subsets (NOMADS filter service), FIRMS fire detections
+# (FRP) and the Delhi domain grid to produce an offline "raw WRF-Chem style"
+# PM2.5 field with plume-rise injection and simplified transport chemistry.
+
+gfs:
+  filter_base: "https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl"
+  subregion:
+    top_lat: 33.0
+    bottom_lat: 27.0
+    left_lon: 72.0
+    right_lon: 79.0
+  fhrs: [0, 3, 6, 9, 12, 15, 18, 21, 24, 30, 36, 42, 48, 54, 60, 66, 72]
+  levels:                    # level_str -> [grib variables], in filter syntax
+    "2_m_above_ground": ["TMP", "RH"]
+    "10_m_above_ground": ["UGRD", "VGRD"]
+    "surface": ["HGT", "GUST"]
+    "925_mb": ["TMP", "RH", "UGRD", "VGRD"]
+    "850_mb": ["TMP", "RH", "UGRD", "VGRD"]
+    "700_mb": ["TMP", "UGRD", "VGRD"]
+
+emissions:
+  pm25_ef: 0.009              # g PM2.5 per MJ of FRP (crop-residue burning)
+  pm10_ratio: 1.6             # PM10/PM2.5 mass ratio for gridded fire smoke
+  urban_base_kg_km2_day: 180.0   # diffuse urban primary PM2.5 source
+  fire_min_frp_mw: 10.0       # skip sub-threshold detections
+  fire_lifetime_h: 6.0        # hours a fire keeps emitting after its acq time
+
+plume:
+  model: "freitas07"
+  entrainment_coef: 0.6       # alpha (standard value 0.6)
+  sensible_fraction: 0.45     # fraction of FRP released as sensible heat
+  dr_dz: 20.0                 # initial plume radius growth factor (m per layer)
+  z_step: 50.0                # vertical integration step (m)
+  max_top_m: 6500
+  n_layers: 12                # vertical layers for mass distribution
+
+emulator:
+  seed: 11
+  decay_rate_h: 0.035         # 1st-order aged-aerosol loss (h^-1)
+  wet_removal_per_rh01: 0.004 # per 1 % RH above 70 % wet deposition
+  diffusion_sigma_km: 6.0     # smoke puff spread (std, km) after 1 h
+  advect_cap_h: 36            # max hours a puff contributes back in time
+  inversion_bias_mult: 0.82   # raw-model under-forecast during inversion nights
+  urban_offset_ug_m3: 8.0     # micro-UHI offset added at dense-urban stations
+  obs_noise_ug_m3: 4.0        # synthetic observation noise (demo only)
+
+chemistry:
+  species: ["PM2.5", "PM10"]
+  # effective specific-heat / density constants used by plume-rise
+  cp_air: 1005.0
+  g_const: 9.81
+  mair: 0.0289644             # kg/mol
+
+artifact:
+  out_root: "data/coupled"

@@ -1,0 +1,1 @@
+"""Local object-store emulation for Phase-1 (swaps for S3/MinIO later)."""

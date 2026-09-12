@@ -1,0 +1,72 @@
+# Phase-1 data ingestion config: sources, urls, failovers, schedules.
+
+storage:
+  base_dir: "data/ingest"     # canonical object-store layout root (local emulation)
+  partition_layout: "{source}/{date}/{run_id}"   # idempotent partition key
+  parquet_compression: "zstd"
+
+sources:
+  gfs:
+    enabled: true
+    model: "gfs"
+    product: "pgrb2.0p25"
+    fhr_start: 0
+    fhr_end: 72            # 72-hour rolling forecast horizon
+    fhr_step: 3            # 3-hourly output steps
+    cycles: [0, 6, 12, 18] # 4 cycles/day
+    variables:             # Level-1 subset pulled this phase
+      - "HGT:surface"
+      - "TMP:2 m above ground"
+      - "RH:2 m above ground"
+      - "UGRD:10 m above ground"
+      - "VGRD:10 m above ground"
+      - "PRMSL:mean sea level"
+      - "TMP:925 mb"
+      - "TMP:850 mb"
+    endpoints:             # ordered failover chain
+      - "https://noaa-gfs-bdp-pds.s3.amazonaws.com"
+      - "https://nomads.ncep.noaa.gov"
+      - "https://www.ftp.ncep.noaa.gov/data/nccf/com/gfs/prod"
+    file_pattern: "gfs.t{cyc:02d}z.pgrb2.0p25.f{fhr:03d}"
+
+  cpcb:
+    enabled: true
+    poll_interval_minutes: 15
+    endpoints:             # ordered failover chain (mirrors rotate)
+      - "https://airquality.cpcb.gov.in/CAAQM/AqiDataLink/GetData"
+      - "https://app.cpcbccr.com/AQI_Data/AQI_Data.csv"
+      - "https://api.waqi.info/feed/@/ "
+    fallback_ttl_hours: 6  # reuse last-good blob beyond this as stale
+    min_station_coverage: 0.6   # fraction of registry required
+
+  firms:
+    enabled: true
+    api_base: "https://firms.modaps.eosdis.nasa.gov/api/area/csv"
+    map_key_env: "FIRMS_MAP_KEY"        # NASA FIRMS credentials from env
+    collections:
+      viirs_nrt: "VIIRS_SNPP_NRT"       # 375m, ~30-min revisit
+      viirs_noaa20_nrt: "VIIRS_NOAA20_NRT"
+      modis_nrt: "MODIS_NRT"
+    default_collection: "VIIRS_SNPP_NRT"
+    bbox: "76.8,28.2,77.6,29.0"         # Delhi NCR study domain
+    day_window: 1                        # days back to poll
+    poll_interval_minutes: 30
+
+quality:
+  gfs:
+    max_missing_fraction: 0.05
+    lat_band: [20.0, 32.0]              # sanity band (India sub-cont)
+    log_band: [60.0, 100.0]
+  cpcb:
+    max_value_ug_m3: 2000               # hard physical ceiling for PM
+    explicit_lower_bound: 0.0
+    mad_cutoff_sigma: 5.0               # median-absolute-deviation spike filter
+  firms:
+    frp_range_mw: [0.0, 5000.0]
+    confidence_min: 20                  # percent
+
+grap:
+  # CAQM GRAP Stage thresholds (24-h avg AQI) — used by Module-5, spec'd now.
+  stage_thresholds: {1: 201, 2: 301, 3: 401, 4: 451}
+  min_stations_pct: 60
+  persistence_hours: 3

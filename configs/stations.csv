@@ -1,0 +1,39 @@
+station_id,name,lat,lon,district,state,is_manual,source
+DL-001,Anand Vihar,28.6461,77.3161,East Delhi,Delhi,false,cpcb-registry
+DL-002,Ashok Vihar,28.6934,77.1740,North West Delhi,Delhi,false,cpcb-registry
+DL-003,Aya Nagar,28.4750,77.1120,South Delhi,Delhi,false,cpcb-registry
+DL-004,Bawana,28.7990,77.0340,North West Delhi,Delhi,false,cpcb-registry
+DL-005,Burari Crossing,28.7480,77.1860,North Delhi,Delhi,false,cpcb-registry
+DL-006,Chandni Chowk,28.6500,77.2300,Central Delhi,Delhi,false,cpcb-registry
+DL-007,CRRI Mathura Road,28.5490,77.2700,South East Delhi,Delhi,false,cpcb-registry
+DL-008,Dwarka Sector 8,28.5700,77.0710,South West Delhi,Delhi,false,cpcb-registry
+DL-009,DTU,28.7490,77.1170,North West Delhi,Delhi,false,cpcb-registry
+DL-010,IHBAS Dilshad Garden,28.6860,77.3230,East Delhi,Delhi,false,cpcb-registry
+DL-011,IGI Airport T3,28.5560,77.0980,South West Delhi,Delhi,false,cpcb-registry
+DL-012,IIT Delhi,28.5440,77.1910,South Delhi,Delhi,false,cpcb-registry
+DL-013,Jahangirpuri,28.7350,77.1660,North Delhi,Delhi,false,cpcb-registry
+DL-014,Jawaharlal Nehru Stadium,28.5830,77.2340,South Delhi,Delhi,false,cpcb-registry
+DL-015,Lodhi Road IITM,28.5920,77.2210,New Delhi,Delhi,false,cpcb-registry
+DL-016,Mandir Marg,28.6260,77.2010,New Delhi,Delhi,false,cpcb-registry
+DL-017,Mazirpur,28.7470,76.9600,North West Delhi,Delhi,false,cpcb-registry
+DL-018,Mundka,28.6840,77.1260,West Delhi,Delhi,false,cpcb-registry
+DL-019,Narela,28.8520,77.0930,North Delhi,Delhi,false,cpcb-registry
+DL-020,NSIT Dwarka,28.6080,77.0400,South West Delhi,Delhi,false,cpcb-registry
+DL-021,Okhla Phase 2,28.5100,77.2690,South East Delhi,Delhi,false,cpcb-registry
+DL-022,Patparganj,28.6320,77.3050,East Delhi,Delhi,false,cpcb-registry
+DL-023,Punjabi Bagh,28.6660,77.1300,West Delhi,Delhi,false,cpcb-registry
+DL-024,Pushpanjali Enclave,28.7060,77.0780,West Delhi,Delhi,false,cpcb-registry
+DL-025,Rohini,28.7500,77.0830,North West Delhi,Delhi,false,cpcb-registry
+DL-026,RK Puram,28.5630,77.1580,South West Delhi,Delhi,false,cpcb-registry
+DL-027,Shadipur,28.6530,77.1460,West Delhi,Delhi,false,cpcb-registry
+DL-028,Sirifort,28.5510,77.2100,South Delhi,Delhi,false,cpcb-registry
+DL-029,Sonia Vihar,28.7220,77.2500,North East Delhi,Delhi,false,cpcb-registry
+DL-030,Sri Aurobindo Marg,28.5380,77.1690,South Delhi,Delhi,false,cpcb-registry
+DL-031,Vivek Vihar,28.6710,77.3140,East Delhi,Delhi,false,cpcb-registry
+DL-032,Wazirpur,28.7000,77.1630,North West Delhi,Delhi,false,cpcb-registry
+HR-001,Faridabad,28.4089,77.3178,Faridabad,Haryana,false,cpcb-registry
+HR-002,Gurugram,28.4595,77.0266,Gurugram,Haryana,false,cpcb-registry
+HR-003,Rohtak,28.8955,76.6066,Rohtak,Haryana,false,cpcb-registry
+UP-001,Noida,28.5355,77.3910,Gautam Buddha Nagar,Uttar Pradesh,false,cpcb-registry
+UP-002,Greater Noida,28.4744,77.5039,Gautam Buddha Nagar,Uttar Pradesh,false,cpcb-registry
+UP-003,Ghaziabad,28.6692,77.4538,Ghaziabad,Uttar Pradesh,false,cpcb-registry
