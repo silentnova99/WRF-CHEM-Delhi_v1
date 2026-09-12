@@ -1,9 +1,10 @@
 # Delhi NCR Air-Quality–Weather Coupled Forecasting System
 
 End-to-end pipeline that turns **real operational meteorology** (GFS 0.25° GRIB2)
-and **satellite fire detections** (NASA FIRMS) into a gridded PM2.5 forecast for
-the Delhi NCR 4 km domain — with plume-rise physics, an ML bias-correction
-stage, a geospatial API and a 3D WebGIS dashboard.
+and **satellite fire detections** (NASA FIRMS) into a gridded multi-species
+(PM2.5 / PM10 / O3) forecast for the Delhi NCR 4 km domain — with plume-rise
+physics, an ML bias-correction stage, a geospatial API and a 3D WebGIS
+dashboard.
 
 Target: a Phase-1 offline implementation of the MoES / NCMRWF-style WRF-Chem
 coupled forecasting workflow, structured so the offline PM2.5 *emulator* can be
@@ -25,10 +26,10 @@ CPCB* ──────┘      (parquet)     │  (met + plume +   ├─Modul
 | # | Name | Delivers |
 |---|------|----------|
 | 1 | Ingestion | Resilient connectors (failover + retry), validation, idempotent parquet store for CPCB / FIRMS / GFS |
-| 2 | Coupled emulator | Real GFS GRIB2 subsets → Delhi grid; Freitas plume rise; FRP→PM2.5 emissions; two-reservoir transport-chemistry; WRF namelist scaffolding |
+| 2 | Coupled emulator | Real GFS GRIB2 subsets → Delhi grid; Freitas plume rise; FRP→PM2.5/PM10 emissions + O3 photochemical proxy; multi-species transport-chemistry; WRF namelist scaffolding |
 | 3 | Bias correction | ST-GNN + XGBoost ensemble over model field → per-station corrected forecasts |
 | 4 | Geospatial API | FastAPI + Redis-cached endpoints over all artifacts |
-| 5 | 3D WebGIS | MapLibre GL dashboard: animated PM2.5 field, 3D extrusions, met overlays, fire & station layers |
+| 5 | 3D WebGIS | MapLibre GL dashboard: animated multi-species field (PM2.5 / PM10 / O3), CPCB AQI severity-band colours (green → red), 3D extrusions, met overlays, blinking station spots, fire & station layers |
 
 ## Install
 
@@ -46,7 +47,7 @@ on Linux install the system library first (`libeccodes-dev`).
 ## Quickstart
 
 ```bash
-# 1) full offline test suite (41 tests, no network)
+# 1) full offline test suite (44 tests, no network)
 pytest
 
 # 2) Module-2: coupled emulator
@@ -142,7 +143,7 @@ pytest                        # offline, deterministic (network never required)
 pytest tests/test_module2.py  # per-module
 ```
 
-41 tests: 7 ingest · 9 Module-3 · 5 Module-4 · 15 Module-2 · 5 Module-5.
+44 tests: 7 ingest · 9 Module-3 · 5 Module-4 · 18 Module-2 · 5 Module-5.
 Disable plugin autoload if `pytest-html` breaks collection:
 
 ```bash
