@@ -90,6 +90,10 @@ class CoupledResult:
     hours: list[datetime]
     pm25_grid: np.ndarray           # [nt, ny, nx] µg/m³ raw model
     pm25_obs_demo: np.ndarray       # [nt, ny, nx] synthetic obs (demo)
+    pm10_grid: np.ndarray           # [nt, ny, nx] µg/m³ raw model
+    pm10_obs_demo: np.ndarray
+    o3_grid: np.ndarray             # [nt, ny, nx] µg/m³ photochemical proxy
+    o3_obs_demo: np.ndarray
     pblh: np.ndarray
     inversion: np.ndarray
     vent_idx: np.ndarray
@@ -102,12 +106,19 @@ def run_emulator(
     met: MetArrays,
     fires: list[FireDetection],
 ) -> CoupledResult:
-    """Run the offline coupled emulator and return the gridded PM2.5 field."""
+    """Run the offline coupled emulator and return the gridded species fields.
+
+    Primary particulates (PM2.5, PM10) share one transport kernel: emitted
+    mass fills surface/elevated reservoirs with puff advection, decay, wet
+    loss and inversion handling.  O3 is a secondary photochemical proxy driven
+    by solar geometry, temperature and the same stability/inversion state.
+    """
     seed = cfg.emulator.seed
     rng = np.random.default_rng(seed)
     nt = len(met.hours)
     ny, nx = grid.ny, grid.nx
     cell_m2 = (grid.lat_res_km() * 1000.0) * (grid.lon_res_km() * 1000.0)
+    ratio = cfg.emissions.pm10_ratio
 
     mid_lat = grid.domain.lat_min + grid.domain.lat_span / 2
     mid_lon = grid.domain.lon_min + grid.domain.lon_span / 2
@@ -120,11 +131,16 @@ def run_emulator(
     pblh = np.clip(240.0 + 1560.0 * day - 720.0 * inv, 180.0, 2200.0)
     vent = pblh * (met.ws10_ms + 0.35)
 
-    c_sfc = np.zeros((nt, ny, nx))
-    c_elev = np.zeros((nt, ny, nx))
     e_urb = urban_base(cfg, grid, met.hours)
-
     e_sfc_fire, e_elev_fire, _ = fire_emissions(cfg, grid, fires, met.hours, met.cell_at)
+
+    # per-species emission grids: PM10 is PM2.5 scaled by the coarse ratio
+    emit = {
+        "pm25": (e_sfc_fire, e_elev_fire, e_urb),
+        "pm10": (e_sfc_fire * ratio, e_elev_fire * ratio, e_urb * ratio),
+    }
+    c_sfc = {s: np.zeros((nt, ny, nx)) for s in emit}
+    c_elev = {s: np.zeros((nt, ny, nx)) for s in emit}
 
     tau_mix = 2.2                     # hours for elevated smoke to mix down
     decay = cfg.emulator.decay_rate_h
@@ -136,46 +152,70 @@ def run_emulator(
     dlon = grid.lon_res_km()
 
     for t in range(nt):
-        c_sfc[t] += e_urb[t] / (pblh[t] * cell_m2 + 1e-9) * 1e6
+        for s, (e_f_sfc, e_f_elev, e_u) in emit.items():
+            c = c_sfc[s]
+            ce = c_elev[s]
+            c[t] += e_u[t] / (pblh[t] * cell_m2 + 1e-9) * 1e6
 
-        for s in range(max(0, t - cap), t):
-            df = t - s
-            decay_fire = (1.0 - decay) ** df
-            u_mean = float(np.mean(met.u850[s]))
-            v_mean = float(np.mean(met.v850[s]))
-            dx_km = u_mean * 3.6 * df
-            dy_km = v_mean * 3.6 * df
-            dj = int(round(dy_km / dlat))
-            di = int(round(dx_km / dlon))
-            sigma_px = sigma_km * np.sqrt(df) / max(dlon, 0.5)
-            if e_sfc_fire[s].sum() > 0:
-                p_sfc = gaussian_filter(e_sfc_fire[s], sigma_px)
-                c_sfc[t] += _shift(p_sfc, dj, di) * decay_fire / (pblh[s] * cell_m2 + 1e-9) * 1e6
-            if e_elev_fire[s].sum() > 0:
-                p_elev = gaussian_filter(e_elev_fire[s], sigma_px * 1.6)
-                c_elev[t] += _shift(p_elev, dj, di) * decay_fire / (pblh[s] * cell_m2 + 1e-9) * 1e6
+            for k in range(max(0, t - cap), t):
+                df = t - k
+                decay_fire = (1.0 - decay) ** df
+                u_mean = float(np.mean(met.u850[k]))
+                v_mean = float(np.mean(met.v850[k]))
+                dx_km = u_mean * 3.6 * df
+                dy_km = v_mean * 3.6 * df
+                dj = int(round(dy_km / dlat))
+                di = int(round(dx_km / dlon))
+                sigma_px = sigma_km * np.sqrt(df) / max(dlon, 0.5)
+                if e_f_sfc[k].sum() > 0:
+                    p_sfc = gaussian_filter(e_f_sfc[k], sigma_px)
+                    c[t] += _shift(p_sfc, dj, di) * decay_fire / (pblh[k] * cell_m2 + 1e-9) * 1e6
+                if e_f_elev[k].sum() > 0:
+                    p_elev = gaussian_filter(e_f_elev[k], sigma_px * 1.6)
+                    ce[t] += _shift(p_elev, dj, di) * decay_fire / (pblh[k] * cell_m2 + 1e-9) * 1e6
 
-        mix_down = np.clip(1.0 / tau_mix, 0.0, 0.5)
-        c_sfc[t] += c_elev[t] * mix_down
-        c_elev[t] *= (1.0 - mix_down)
+            mix_down = np.clip(1.0 / tau_mix, 0.0, 0.5)
+            c[t] += ce[t] * mix_down
+            ce[t] *= (1.0 - mix_down)
 
-        c_sfc[t] = gaussian_filter(c_sfc[t], max(sigma_km / max(dlon, 0.5) * 0.5, 0.3))
+            c[t] = gaussian_filter(c[t], max(sigma_km / max(dlon, 0.5) * 0.5, 0.3))
 
-        c_sfc[t] *= np.exp(-decay)
+            c[t] *= np.exp(-decay)
 
-        wet_frac = np.clip((met.rh_pct[t] - 70.0) / 30.0, 0.0, 1.0)
-        c_sfc[t] *= (1.0 - wet * wet_frac)
+            wet_frac = np.clip((met.rh_pct[t] - 70.0) / 30.0, 0.0, 1.0)
+            c[t] *= (1.0 - wet * wet_frac)
 
-        c_sfc[t] = np.where(inv[t].astype(bool), c_sfc[t] * inv_bias, c_sfc[t])
+            c[t] = np.where(inv[t].astype(bool), c[t] * inv_bias, c[t])
 
-    c_obs = c_sfc + rng.normal(0.0, cfg.emulator.obs_noise_ug_m3, c_sfc.shape)
+    # --- secondary O3 photochemical proxy (µg/m³, no emitted mass) ---------
+    ch = cfg.chemistry
+    tempf = np.clip((met.t2m_c - 20.0) / ch.o3_temp_k_c, 0.0, 1.0)
+    o3 = (ch.o3_bg_ug_m3 * (0.35 + 0.65 * day)
+          + ch.o3_photo_ug_m3 * day * tempf
+          - ch.o3_titration_ug_m3 * (1.0 - day))
+    o3 = np.where(inv > 0.0, o3 * ch.o3_inv_mult, o3)
+    o3 = np.maximum(o3, 5.0)
+
+    c_pm25 = c_sfc["pm25"]
+    c_pm10 = c_sfc["pm10"]
+    c_obs = c_pm25 + rng.normal(0.0, cfg.emulator.obs_noise_ug_m3, c_pm25.shape)
     c_obs = np.maximum(c_obs, 0.0)
     c_obs += cfg.emulator.urban_offset_ug_m3 * ((met.ws10_ms < 1.5) & (inv > 0.0)).astype(float)
 
+    p10_obs = c_pm10 + rng.normal(0.0, cfg.emulator.obs_noise_ug_m3 * 1.1, c_pm10.shape)
+    p10_obs = np.maximum(p10_obs, 0.0)
+    p10_obs += cfg.emulator.urban_offset_ug_m3 * 1.3 * ((met.ws10_ms < 1.5) & (inv > 0.0)).astype(float)
+
+    o3_obs = np.maximum(o3 + rng.normal(0.0, 3.0, o3.shape), 0.0)
+
     return CoupledResult(
         hours=met.hours,
-        pm25_grid=c_sfc,
+        pm25_grid=c_pm25,
         pm25_obs_demo=c_obs,
+        pm10_grid=c_pm10,
+        pm10_obs_demo=p10_obs,
+        o3_grid=o3,
+        o3_obs_demo=o3_obs,
         pblh=pblh,
         inversion=inv,
         vent_idx=vent,

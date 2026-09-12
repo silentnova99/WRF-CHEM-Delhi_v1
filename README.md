@@ -103,9 +103,12 @@ The emulator fetches tiny Delhi-window GRIB2 subsets for each forecast hour
 from the NOMADS GFS 0.25° filter service (~4 KB/hour → ~100 KB for a full 72 h
 window), decodes them with `eccodes`, bilinearly regrids onto the 23×21
 Delhi grid, derives PBL/inversion/ventilation, then runs a Freitas-style 1-D
-integral plume-rise model, FRP emission coupling and a two-reservoir PM2.5
-transport-chemistry kernel. It is fully **deterministic** (seeded RNG) so
-offline tests are reproducible.
+integral plume-rise model, FRP emission coupling and a multi-species
+transport-chemistry kernel: **PM2.5 + PM10** primary reservoirs (shared
+advection/decay/wet-loss physics, PM10 = coarse ratio × PM2.5) plus an **O3**
+photochemical proxy (solar-geometry production, temperature dependence, NOx
+night titration, inversion suppression). It is fully **deterministic** (seeded
+RNG) so offline tests are reproducible.
 
 ```bash
 python scripts/run_module2.py grib  --init 2026-09-12 00 --fhr 0 3 6   # subsets only

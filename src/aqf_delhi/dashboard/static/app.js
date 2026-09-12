@@ -248,6 +248,9 @@
   function drawLegend() {
     const cv = document.getElementById("legend");
     if (!cv) return;
+    const name = { pm25_raw: "PM2.5", pm10_raw: "PM10",
+                   o3_raw: "O3", pm25_obs_demo: "PM2.5 obs" }[app.field] || app.field;
+    document.getElementById("legend-title").textContent = name + " µg·m⁻³";
     const ctx = cv.getContext("2d");
     const g = ctx.createLinearGradient(0, 0, cv.width, 0);
     for (let i = 0; i <= 10; i++) g.addColorStop(i / 10, rgb(colorT(i / 10)));

@@ -20,6 +20,8 @@
       <label>Pollutant layer</label>
       <select id="field">
         <option value="pm25_raw">PM2.5 raw (simulated)</option>
+        <option value="pm10_raw">PM10 raw (simulated)</option>
+        <option value="o3_raw">O₃ raw (photochemical)</option>
         <option value="pm25_obs_demo">PM2.5 obs-like</option>
       </select>
       <label>View</label>
@@ -46,7 +48,7 @@
     </section>
 
     <section class="card legend-card">
-      <div class="legend-title">PM2.5 µg·m⁻³</div>
+      <div class="legend-title" id="legend-title">PM2.5 µg·m⁻³</div>
       <canvas id="legend" width="180" height="14"></canvas>
       <div class="axis-row">
         <span id="lmin">0</span><span id="lmax">0</span>

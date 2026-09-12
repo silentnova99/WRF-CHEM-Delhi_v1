@@ -155,6 +155,45 @@ def test_emulator_deterministic_and_plausible():
     assert float(f.mean()) > 10.0
 
 
+def test_emulator_pm10_scales_pm25_with_ratio():
+    cfg, grid = _cfg(), _grid()
+    hours = _hours(24)
+    met = synthetic_met(cfg, grid, hours, seed=3)
+    r = run_emulator(cfg, grid, met, [])
+    # same transport kernel -> PM10 is PM2.5 scaled by the coarse ratio
+    assert np.allclose(r.pm10_grid, r.pm25_grid * cfg.emissions.pm10_ratio,
+                       rtol=1e-9, atol=1e-6)
+    # all species deterministic
+    r2 = run_emulator(cfg, grid, met, [])
+    assert np.array_equal(r.pm10_grid, r2.pm10_grid)
+    assert np.array_equal(r.o3_grid, r2.o3_grid)
+
+
+def test_o3_diurnal_photo_chemistry():
+    cfg, grid = _cfg(), _grid()
+    hours = _hours(24)                       # 2026-09-12 00z .. 23z
+    met = synthetic_met(cfg, grid, hours, seed=5)
+    r = run_emulator(cfg, grid, met, [])
+    o3 = r.o3_grid
+    assert np.isfinite(o3).all()
+    assert (o3 >= 0).all() and o3.max() < 500.0
+    day_idx = [t for t in range(24) if 5 <= t <= 15]
+    night_idx = [t for t in range(24) if t < 4 or t > 20]
+    assert o3[day_idx].mean() > o3[night_idx].mean() + 20.0, \
+        "photochemical proxy must peak in daytime"
+
+
+def test_o3_shape_matches_pm25():
+    cfg, grid = _cfg(), _grid()
+    hours = _hours(9)
+    met = synthetic_met(cfg, grid, hours, seed=6)
+    r = run_emulator(cfg, grid, met, [])
+    assert r.o3_grid.shape == r.pm25_grid.shape
+    assert r.pm10_obs_demo.shape == r.pm25_grid.shape
+    assert r.o3_obs_demo.shape == r.pm25_grid.shape
+    assert (r.pm10_obs_demo >= 0).all() and (r.o3_obs_demo >= 0).all()
+
+
 def test_emulator_fire_raises_concentration_downwind():
     cfg, grid = _cfg(), _grid()
     hours = _hours(24)
@@ -215,10 +254,15 @@ def test_coupled_run_demo_writes_artifact(tmp_path):
     for fname in ("meta.json", "grid.parquet", "emissions_fire.parquet", "stations.parquet"):
         assert (run_dir / fname).is_file(), fname
     g = pd.read_parquet(run_dir / "grid.parquet")
-    assert {"pm25_raw", "pm25_obs_demo", "inversion", "pblh_m"}.issubset(g.columns)
+    for col in ("pm25_raw", "pm25_obs_demo", "pm10_raw", "pm10_obs_demo",
+                "o3_raw", "o3_obs_demo", "inversion", "pblh_m"):
+        assert col in g.columns, col
     s = pd.read_parquet(run_dir / "stations.parquet")
-    assert {"station_id", "pm25_raw", "pm25_obs_demo"}.issubset(s.columns)
+    for col in ("station_id", "pm25_raw", "pm25_obs_demo", "pm10_raw", "o3_raw"):
+        assert col in s.columns, col
     assert s["station_id"].nunique() >= 3
+    assert (g["pm10_raw"] >= g["pm25_raw"]).all()
+    assert (g["o3_raw"] >= 0).all()
 
 
 # ------------------------------------------------------------ namelist -----

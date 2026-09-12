@@ -67,6 +67,11 @@ class ChemistryConfig(BaseModel):
     cp_air: float = Field(gt=0.0)
     g_const: float = Field(gt=0.0)
     mair: float = Field(gt=0.0)
+    o3_bg_ug_m3: float = Field(gt=0.0)
+    o3_photo_ug_m3: float = Field(ge=0.0)
+    o3_titration_ug_m3: float = Field(ge=0.0)
+    o3_inv_mult: float = Field(gt=0.0, le=1.0)
+    o3_temp_k_c: float = Field(gt=0.0)   # °C span for full photochemical production
 
 
 class ArtifactConfig(BaseModel):

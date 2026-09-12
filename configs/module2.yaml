@@ -47,11 +47,17 @@ emulator:
   obs_noise_ug_m3: 4.0        # synthetic observation noise (demo only)
 
 chemistry:
-  species: ["PM2.5", "PM10"]
+  species: ["PM2.5", "PM10", "O3"]
   # effective specific-heat / density constants used by plume-rise
   cp_air: 1005.0
   g_const: 9.81
   mair: 0.0289644             # kg/mol
+  # simplified surface O3 photochemical proxy (µg/m³)
+  o3_bg_ug_m3: 40.0           # clear-sky daytime background ceiling
+  o3_photo_ug_m3: 115.0       # peak photochemical production over full temp span
+  o3_titration_ug_m3: 26.0    # night-time NOx titration of surface O3
+  o3_inv_mult: 0.55           # O3 suppression during inversion nights
+  o3_temp_k_c: 12.0           # °C above 20 °C for full photochemistry
 
 artifact:
   out_root: "data/coupled"

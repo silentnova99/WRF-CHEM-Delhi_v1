@@ -240,6 +240,10 @@ def station_series(
                 "lat": float(st["lat"]), "lon": float(st["lon"]),
                 "pm25_raw": float(result.pm25_grid[t, j, i]),
                 "pm25_obs_demo": float(result.pm25_obs_demo[t, j, i]),
+                "pm10_raw": float(result.pm10_grid[t, j, i]),
+                "pm10_obs_demo": float(result.pm10_obs_demo[t, j, i]),
+                "o3_raw": float(result.o3_grid[t, j, i]),
+                "o3_obs_demo": float(result.o3_obs_demo[t, j, i]),
             })
     return series, {"cells": cells}
 

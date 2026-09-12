@@ -75,11 +75,16 @@ class DashboardState:
         for k, g in gm.groupby("time", sort=True):
             hours_sorted = g.sort_values(["j", "i"]).reset_index(drop=True)
             hour_labels.append(pd.Timestamp(k).strftime("%Y-%m-%dT%H:%M"))
-            hour_arrays.append({
+            blk = {
                 "pm25_raw": _round_list(hours_sorted["pm25_raw"].to_numpy()),
                 "pm25_obs_demo": _round_list(hours_sorted["pm25_obs_demo"].to_numpy()),
                 "inversion": _round_list(hours_sorted["inversion"].to_numpy(), 0),
-            })
+            }
+            if "pm10_raw" in hours_sorted.columns:
+                blk["pm10_raw"] = _round_list(hours_sorted["pm10_raw"].to_numpy())
+            if "o3_raw" in hours_sorted.columns:
+                blk["o3_raw"] = _round_list(hours_sorted["o3_raw"].to_numpy())
+            hour_arrays.append(blk)
 
         last_t = gm["time"].max()
         last_grid = gm[gm["time"] == last_t].sort_values(["j", "i"]).reset_index(drop=True)
