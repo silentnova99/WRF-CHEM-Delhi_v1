@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Delhi NCR AQF — Unified Dashboard</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" />
+  <link rel="stylesheet" href="/home.css" />
+</head>
+<body>
+
+  <!-- ── map ── -->
+  <div id="map">
+    <div id="map-clock"><b id="tlabel">—</b></div>
+    <div id="map-legend">
+      <div class="legend-title" id="legend-title">PM2.5 · AQI severity</div>
+      <div id="legend-bands"></div>
+      <div class="axis-row">
+        <span>data <b id="lmin">0</b>–<b id="lmax">0</b> µg·m⁻³</span>
+        <span id="bandline">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── right panel ── -->
+  <aside id="panel">
+    <header>
+      <h1>Delhi NCR AQF</h1>
+      <p class="sub">coupled WRF-Chem · unified control room</p>
+    </header>
+
+    <!-- pollutant / view controls -->
+    <section class="card">
+      <label>Pollutant layer</label>
+      <select id="field">
+        <option value="pm25_raw">PM2.5 raw (simulated)</option>
+        <option value="pm10_raw">PM10 raw (simulated)</option>
+        <option value="o3_raw">O₃ raw (photochemical)</option>
+      </select>
+      <label>View</label>
+      <select id="model">
+        <option value="map">2D map</option>
+        <option value="ext">3D extruded cells</option>
+        <option value="tower">3D station towers</option>
+      </select>
+      <label>Met overlay</label>
+      <select id="met">
+        <option value="none">none</option>
+        <option value="wind">10 m wind</option>
+        <option value="pblh">PBL height</option>
+        <option value="t2m">2 m temperature</option>
+      </select>
+    </section>
+
+    <!-- run info + time slider -->
+    <section class="card" id="runbox">
+      <div id="runinfo">loading…</div>
+      <input id="slider" type="range" min="0" max="0" value="0" />
+      <div class="axis-row">
+        <span>init</span><span>forecast hours →</span><span>+72 h</span>
+      </div>
+    </section>
+
+    <!-- live CPCB observations -->
+    <section class="card">
+      <div class="card-header">Live CPCB Ground Truth</div>
+      <div id="cpcb-status" class="muted">loading…</div>
+      <div class="table-wrap">
+        <table id="cpcb-table">
+          <thead><tr><th>Station</th><th>PM2.5</th><th>PM10</th><th>O₃</th><th>NO₂</th><th>CO</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- forecast summary -->
+    <section class="card">
+      <div class="card-header">Latest Forecast</div>
+      <div id="fc-summary" class="muted">loading…</div>
+    </section>
+
+    <!-- system health -->
+    <section class="card">
+      <div class="card-header">System Health</div>
+      <div id="health-grid" class="health-grid">loading…</div>
+    </section>
+
+    <!-- domain + stats -->
+    <section class="card" id="stats"></section>
+
+    <footer>
+      GFS 0.25° · FRP fire emissions · Freitas plume rise ·
+      forecast: <span id="fc">—</span>
+    </footer>
+  </aside>
+
+  <div id="offline" class="hidden">No network — CDN assets unavailable; grid overlays still render locally.</div>
+
+  <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+  <script src="/home.js"></script>
+</body>
+</html>

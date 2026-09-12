@@ -22,6 +22,7 @@ from aqf_delhi.api.cache import build_cache
 from aqf_delhi.api.store import ApiStore
 from aqf_delhi.config import PROJECT_ROOT
 from aqf_delhi.dashboard import dashboard_router
+from aqf_delhi.dashboard.home_routes import home_router
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +34,7 @@ TAGS = [
     {"name": "gfs", "description": "GFS asset manifests"},
     {"name": "forecasts", "description": "Module-3 bias-corrected forecasts"},
     {"name": "dashboard", "description": "Module-5 3D WebGIS dashboard"},
+    {"name": "home", "description": "Unified single-page homepage (map + live panels)"},
 ]
 
 
@@ -71,6 +73,7 @@ def create_app(
     app.state.stations = load_stations()
 
     for router in (
+        home_router,
         R.health_router,
         R.domain_router,
         R.obs_router,
