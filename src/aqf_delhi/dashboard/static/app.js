@@ -39,6 +39,7 @@
   const app = {
     state: null, map: null,
     hourIdx: 0, model: "map", field: "pm25_raw", met: "none",
+    blink: false, blinker: null,
   };
 
   const bandsFor = () => BANDS[app.field] || BANDS.pm25_raw;
@@ -181,6 +182,46 @@
     };
   };
 
+  // sample the current hour's value at a station via its nearest grid cell
+  const spotValue = (s) => {
+    const { xs, ys } = nodes();
+    const { nx } = gridDims();
+    let j = 0, i = 0, db = Infinity, bb = Infinity;
+    for (let k = 0; k < ys.length; k++) {
+      const d = Math.abs(ys[k] - s.lat);
+      if (d < db) { db = d; j = k; }
+    }
+    for (let k = 0; k < xs.length; k++) {
+      const d = Math.abs(xs[k] - s.lon);
+      if (d < bb) { bb = d; i = k; }
+    }
+    return current()[app.field][j * nx + i];
+  };
+
+  // live blinking spot markers: colour = severity of the selected hour
+  const spotsData = () => ({
+    type: "FeatureCollection",
+    features: (app.state.stations || []).map((s) => {
+      const v = spotValue(s);
+      const b = bandOf(v);
+      return {
+        type: "Feature",
+        properties: { pm: v, color: bandToCss(b.band) },
+        geometry: { type: "Point", coordinates: [s.lon, s.lat] },
+      };
+    }),
+  });
+
+  function startBlink() {
+    if (app.blinker) return;
+    app.blinker = setInterval(() => {
+      if (!app.map) return;
+      app.blink = !app.blink;
+      app.map.setPaintProperty("spots", "circle-radius", app.blink ? 11 : 6);
+      app.map.setPaintProperty("spots", "circle-opacity", app.blink ? 1.0 : 0.35);
+    }, 650);
+  }
+
   /* ------------------------------------------------------- layers ------ */
   function buildLayers(map) {
     map.addSource("pm25", { type: "canvas", canvas: document.createElement("canvas"), coordinates: [[0, 0], [1, 0], [1, 1], [0, 1]] });
@@ -196,6 +237,13 @@
       paint: { "circle-radius": ["interpolate", ["linear"], ["get", "frp_mw"], 0, 6, 2000, 26],
         "circle-color": "#ff3b30", "circle-opacity": 0.85,
         "circle-stroke-color": "#7a0f0a", "circle-stroke-width": 1 } });
+
+    // live blinking severity spots (under station rings + labels)
+    map.addSource("spots", { type: "geojson", data: emptyFC() });
+    map.addLayer({ id: "spots", type: "circle", source: "spots",
+      paint: { "circle-radius": 7, "circle-color": ["get", "color"],
+        "circle-opacity": 0.95,
+        "circle-stroke-color": "#ffffff", "circle-stroke-width": 1.5 } });
 
     map.addSource("stations", { type: "geojson", data: emptyFC() });
     map.addLayer({ id: "stations", type: "circle", source: "stations",
@@ -248,6 +296,7 @@
         geometry: { type: "Point", coordinates: [s.lon, s.lat] },
       })),
     });
+    map.getSource("spots").setData(spotsData());
     map.getSource("towers").setData(stationTowers());
 
     vis(map, "pm25-raster", app.model === "map");
@@ -369,6 +418,7 @@
       buildLayers(app.map);
       document.getElementById("slider").max = st.coupled.hours.length - 1;
       renderAll();
+      startBlink();
     });
 
     document.getElementById("slider").addEventListener("input", (e) => {
@@ -386,6 +436,15 @@
     document.getElementById("met").addEventListener("change", (e) => {
       app.met = e.target.value;
       renderAll();
+    });
+
+    app.map.on("click", "spots", (e) => {
+      const p = e.features[0].properties;
+      new maplibregl.Popup({ offset: 20 })
+        .setLngLat(e.lngLat)
+        .setHTML(`<b>${p.station_id}</b><br/>${severityStyle(p.pm)} ` +
+                 `<div style="color:#888">·</div>selected hour ${app.state.coupled.times[app.hourIdx]}`)
+        .addTo(app.map);
     });
 
     app.map.on("click", "stations", (e) => {
