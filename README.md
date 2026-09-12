@@ -10,17 +10,35 @@ Target: a Phase-1 offline implementation of the MoES / NCMRWF-style WRF-Chem
 coupled forecasting workflow, structured so the offline PM2.5 *emulator* can be
 replaced by a full WRF-Chem solver without changing the surrounding pipeline.
 
+## Features
+
+- **Real operational forcing** — GFS 0.25° GRIB2 subsets pulled live from
+  NOMADS/AWS mirrors with endpoint failover + bounded retry.
+- **Live CPCB ground truth** — hourly observations (PM2.5, PM10, O3, NO2,
+  SO2, CO, NH3) ingested from the data.gov.in OGD API for the whole Delhi NCR,
+  with CAAQM mirror fallbacks.
+- **Coupled multi-species emulator** — Freitas-style integral plume rise,
+  fire-FRP emission coupling, and shared transport-chemistry for PM2.5 / PM10
+  plus an O3 photochemical proxy, fully deterministic and testable.
+- **ML bias correction** — ST-GNN + XGBoost ensemble mapping the model field
+  onto per-station corrected forecasts.
+- **Geospatial API** — FastAPI over all artifacts with TTL/Redis caching.
+- **3D WebGIS dashboard** — MapLibre GL: animated gridded fields coloured by
+  CPCB AQI severity bands (green → red), 3D extrusion towers, live fire and
+  station layers, blinking station dots and an on-map legend/clock.
+
 ```
-GFS GRIB2 ──┐                                             ┌─ Module-5 3D WebGIS
-FIRMS ──────┼─ Module-1 ingest ─┬─ Module-2 coupler ─┐    │   dashboard (MapLibre)
-CPCB* ──────┘      (parquet)     │  (met + plume +   ├─Module-3 bias-correction─┼─ Module-4 API
-                                 │   emissions)      └─ (ST-GNN + XGBoost) ─────┘
-                                 └─────────────────────────────────────────▶ data/{coupled|forecasts}/
+GFS GRIB2 ──┐
+FIRMS ──────┼─ Module-1 ingest ─┬─ Module-2 coupler ─┐                 ┌─ Module-5 3D WebGIS
+CPCB ───────┘      (parquet)     │  (met + plume +   ├─ Module-3 bias ──┤   dashboard (MapLibre)
+  (data.gov.in)                  │   emissions)      │  correction ─────┤
+                                 └───────────────────┴──────────────────┴──▶ Module-4 API
+                                                             data/{coupled|forecasts|ingest}/
 ```
 
-> \* CPCB live ground-truth now ingests through the **data.gov.in OGD API**
-> (CPCB "Real time Air Quality Index" resource); a CPCB Sameer/CCR mirror tier
-> is wired as fallback. See [Ingestion](#ingestion).
+> CPCB ground truth ingests through the **data.gov.in OGD API** (CPCB "Real
+> time Air Quality Index" resource, `3b01bcb8-…ba69`); CAAQM Sameer/CCR mirror
+> tiers are wired as fallback. See [Ingestion](#ingestion).
 
 ## Modules
 
@@ -88,6 +106,20 @@ tries three tiers in order:
 data/ingest/{source}/{YYYY-MM-DD}/{run_id}/records.parquet
 data/ingest/{source}/{YYYY-MM-DD}/{run_id}/_DONE
 ```
+
+## Environment variables
+
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `DATA_GOVIN_API_KEY` | data.gov.in OGD key for CPCB ingestion | — (required) |
+| `FIRMS_MAP_KEY` | NASA FIRMS fire-detection key | — (optional, fires) |
+| `AQF_DATA_ROOT` | override runtime data root | `data/` |
+| `AQF_REDIS_URL` | optional Redis cache URL (falls back to memory) | — |
+| `AQF_CACHE_TTL` | API cache TTL seconds | 60 |
+
+Keys are read from the environment (see `.env.example`); never commit a real
+key. Register at https://data.gov.in (My Account) for a personal key — the
+public sample key is shared, capped at 10 records/request and rate-limited.
 
 ## Artifacts
 
@@ -178,14 +210,15 @@ src/aqf_delhi/
   ml/          Module-3 ST-GNN + XGBoost (features, graph, train, ensemble, metrics)
   pipeline/    Module-1 validation + orchestration
   schemas/     canonical record models (CPCB, FIRMS, GFS)
-  sources/     resilient data connectors
+  sources/     resilient data connectors (cpcb tiers, firms, gfs)
   storage/     idempotent parquet partition store
   wrf/         Module-2 coupler (grib, regrid, plume, emissions, emulator, coupling)
   config.py    typed YAML configuration
   domain.py    Delhi 4 km grid derivation
 configs/       domain.yaml · ingest.yaml · module2.yaml · stations.csv
-scripts/       run_ingest · run_module2 · run_module3 · run_module4
-tests/         offline pytest suite
+scripts/       run_ingest · run_module2 · run_module3 · run_module4 · backfill
+tests/         offline pytest suite (47 tests)
+.github/       CI (pytest × python 3.12/3.13 × windows/ubuntu)
 ```
 
 ## Roadmap
@@ -198,6 +231,12 @@ tests/         offline pytest suite
 - [x] CPCB live ground-truth ingestion (data.gov.in OGD resource live; CAAQM mirror fallback)
 - [ ] Replace PM2.5 emulator kernel with a full WRF-Chem solver run
 - [ ] Operational scheduler (GFS cycle-triggered forecast + publish)
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the conventions (branching,
+testing gate, PR checklist). CI runs `pytest` across Python 3.12/3.13 on
+Windows and Ubuntu.
 
 ## License
 
