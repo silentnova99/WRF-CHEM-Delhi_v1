@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WRF-CHEM DELHI V2 — SIH Dashboard</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" />
+  <style>
+    :root { --bg:#0c1521; --panel:#141f2e; --card:#1a2738; --line:#2b3b52;
+            --text:#e8eef7; --muted:#8ba3c0; --accent:#4dc3ff; }
+    * { box-sizing: border-box; }
+    html,body { margin:0; height:100%; background:var(--bg); color:var(--text);
+      font:13px/1.45 "Segoe UI", system-ui, sans-serif; }
+    #map { position:fixed; inset:0 380px 0 0; }
+    #panel { position:fixed; top:0; right:0; bottom:0; width:380px;
+      display:flex; flex-direction:column; gap:10px; padding:14px;
+      background:var(--panel); border-left:1px solid var(--line); overflow-y:auto; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px; }
+    .card-header { font-size:10px; text-transform:uppercase; letter-spacing:.6px;
+      color:var(--muted); margin-bottom:6px; }
+    h1 { font-size:15px; margin:0; }
+    .sub { color:var(--muted); font-size:11px; margin:2px 0 0; }
+    select { width:100%; padding:5px; background:#0f1a29; color:var(--text);
+      border:1px solid var(--line); border-radius:5px; margin:3px 0 6px; }
+    .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+    .metric { background:#0f1a29; border:1px solid var(--line); border-radius:6px; padding:6px 8px; }
+    .metric .k { font-size:9px; color:var(--muted); text-transform:uppercase; }
+    .metric .v { font-size:16px; font-weight:600; color:var(--text); }
+    .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px;
+      margin:2px; border:1px solid var(--line); }
+    table { width:100%; border-collapse:collapse; font-size:11px; }
+    th { text-align:left; color:var(--muted); font-size:9px; text-transform:uppercase;
+      padding:3px 6px; }
+    td { padding:3px 6px; border-top:1px solid var(--line); }
+    a { color:var(--accent); }
+    #alerts { max-height:120px; overflow-y:auto; }
+    @media(max-width:900px){ #map{inset:0 0 380px 0;} #panel{top:auto;left:0;right:0;bottom:0;width:auto;} }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <aside id="panel">
+    <header>
+      <h1>WRF-CHEM DELHI V2</h1>
+      <p class="sub">coupled atmospheric model · SIH prototype · scenario switchable</p>
+    </header>
+
+    <section class="card">
+      <div class="card-header">Scenario (build current state)</div>
+      <select id="scenario">
+        <option value="normal_winter">1 · Normal winter</option>
+        <option value="strong_inversion">2 · Strong inversion + stagnant</option>
+        <option value="stubble_plume">3 · Stubble plume approaching Delhi</option>
+      </select>
+      <div id="scenario-desc" class="sub"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">Current AQI (lead 70h)</div>
+      <div class="grid2" id="current">
+        <div class="metric"><div class="k">AQI</div><div class="v" id="aqi">—</div></div>
+        <div class="metric"><div class="k">Category</div><div class="v" id="aqi-cat" style="font-size:13px">—</div></div>
+        <div class="metric"><div class="k">PM2.5</div><div class="v" id="pm25">—</div></div>
+        <div class="metric"><div class="k">PM10</div><div class="v" id="pm10">—</div></div>
+        <div class="metric"><div class="k">O3</div><div class="v" id="o3">—</div></div>
+        <div class="metric"><div class="k">NOx</div><div class="v" id="nox">—</div></div>
+        <div class="metric"><div class="k">PBLH (m)</div><div class="v" id="pblh">—</div></div>
+        <div class="metric"><div class="k">Trapping</div><div class="v" id="trap">—</div></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">72-hour forecast (PM2.5 avg)</div>
+      <div class="grid2" id="forecast"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">Alerts</div>
+      <div id="alerts" class="sub">loading…</div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">API Endpoints</div>
+      <div class="sub">
+        /api/health · /api/current · /api/forecast · /api/forecast/{station} ·
+        /api/pollution · /api/weather · /api/inversion · /api/fires ·
+        /api/plume · /api/aqi · /api/metrics · /api/model-info · /api/alerts ·
+        /api/scenarios · /api/ablation
+      </div>
+    </section>
+
+    <footer class="sub">Reduced-order (NOT operational WRF-Chem). Data: deterministic synthetic.</footer>
+  </aside>
+
+  <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+  <script>
+    (() => {
+      const SCEN = {
+        normal_winter: "Typical winter: moderate regional pollution, N-NW winds, shallow night inversion.",
+        strong_inversion: "Persistent inversion + stagnant air: PBL < 300 m, winds < 1.5 m/s, PM builds.",
+        stubble_plume: "Active Punjab/Haryana residue fires; NW winds drive a smoke plume over NCR.",
+      };
+      let map = null;
+      const el = id => document.getElementById(id);
+
+      async function refresh() {
+        const base = "/api";
+        const [aqi, current, forecast, alerts, fires] = await Promise.all([
+          fetch(base + "/aqi?lead=70").then(r => r.json()),
+          fetch(base + "/current").then(r => r.json()),
+          fetch(base + "/forecast").then(r => r.json()),
+          fetch(base + "/alerts").then(r => r.json()),
+          fetch(base + "/fires").then(r => r.json()),
+        ]);
+        el("aqi").textContent = aqi.aqi;
+        el("aqi-cat").textContent = aqi.category;
+        el("pm25").textContent = aqi.concentrations.pm25;
+        el("pm10").textContent = aqi.concentrations.pm10;
+        el("o3").textContent = aqi.concentrations.o3;
+        el("nox").textContent = aqi.concentrations.nox;
+        el("pblh").textContent = current.pblh_m;
+        el("trap").textContent = current.trapping_index;
+        el("alerts").innerHTML = alerts.alerts.length
+          ? alerts.alerts.map(a => `<span class="badge">${a.type}</span>`).join("")
+          : "no alerts active";
+
+        const fc = el("forecast");
+        const pts = forecast.forecast.filter((p, i) => [1,6,12,24,48,72].includes(p.lead_h));
+        fc.innerHTML = pts.map(p =>
+          `<div class="metric"><div class="k">T+${p.lead_h}h</div><div class="v">${p.pm25_avg}</div></div>`)
+          .join("");
+
+        // fires on map
+        if (map && fires.fires && fires.fires.length && map.getSource && map.getSource("fires")) {
+          map.getSource("fires").setData({
+            type: "FeatureCollection",
+            features: fires.fires.map(f => ({
+              type: "Feature",
+              properties: { frp: f.frp_mw },
+              geometry: { type: "Point", coordinates: [f.lon, f.lat] },
+            })),
+          });
+        }
+      }
+
+      async function buildMap() {
+        if (typeof maplibregl === "undefined") return;
+        map = new maplibregl.Map({
+          container: "map",
+          style: {
+            version: 8,
+            glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+            sources: { osm: { type: "raster",
+              tiles: ["https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                      "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                      "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"],
+              tileSize: 256, attribution: "© OpenStreetMap" } },
+            layers: [{ id: "osm", type: "raster", source: "osm" }],
+          },
+          center: [77.2, 28.65], zoom: 9, pitch: 45,
+        });
+        map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }));
+        map.on("load", () => {
+          map.addSource("fires", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+          map.addLayer({ id: "fires", type: "circle", source: "fires",
+            paint: { "circle-radius": 7, "circle-color": "#ff3b30", "circle-opacity": .9 } });
+          refresh();
+        });
+      }
+
+      el("scenario").addEventListener("change", async (e) => {
+        const s = e.target.value;
+        el("scenario-desc").textContent = SCEN[s] || "";
+        try {
+          await fetch("/api/scenario?scenario=" + s);
+          await refresh();
+        } catch (err) { console.error(err); }
+      });
+
+      if (document.readyState === "loading")
+        document.addEventListener("DOMContentLoaded", () => { el("scenario-desc").textContent = SCEN.normal_winter; refresh(); buildMap(); });
+      else { el("scenario-desc").textContent = SCEN.normal_winter; refresh(); buildMap(); }
+    })();
+  </script>
+</body>
+</html>
