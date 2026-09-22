@@ -1,0 +1,76 @@
+{
+  "generated_at": "2026-09-19T18:32:58Z",
+  "sources": {
+    "cpcb": {
+      "source": "cpcb",
+      "status": "OK",
+      "total_rows": 842160,
+      "valid_rows": 793078,
+      "missing_rows": 0,
+      "duplicate_rows": 0,
+      "invalid_rows": 11219,
+      "missing_percentage": 0.0,
+      "temporal_coverage": {
+        "start": "2022-08-05 00:00:00",
+        "end": "2025-11-26 23:00:00",
+        "n_hours": 29040
+      },
+      "spatial_coverage": {
+        "lat_range": [
+          8.5241,
+          31.1048
+        ],
+        "lon_range": [
+          72.5714,
+          94.1086
+        ],
+        "n_stations": 29
+      },
+      "stations": 29,
+      "flagged_columns": [
+        "pm10",
+        "o3",
+        "no2",
+        "so2",
+        "co",
+        "pm25_spike",
+        "pm10_spike",
+        "o3_spike",
+        "no2_spike",
+        "so2_spike",
+        "co_spike"
+      ],
+      "anomalies": [],
+      "generated_at": "2026-09-19T18:32:40Z"
+    },
+    "firms": {
+      "source": "firms",
+      "status": "OK",
+      "total_rows": 7603001,
+      "valid_rows": 7591555,
+      "missing_rows": 0,
+      "duplicate_rows": 0,
+      "invalid_rows": 11446,
+      "missing_percentage": 0.151,
+      "temporal_coverage": {
+        "start": "2024-11-01 00:00:00",
+        "end": "2025-07-09 03:00:00",
+        "n_hours": 1909
+      },
+      "spatial_coverage": {
+        "lat_range": [
+          -87.7327,
+          78.7354
+        ],
+        "lon_range": [
+          -179.8626,
+          179.7906
+        ]
+      },
+      "stations": 0,
+      "flagged_columns": [],
+      "anomalies": [],
+      "generated_at": "2026-09-19T18:32:48Z"
+    }
+  }
+}

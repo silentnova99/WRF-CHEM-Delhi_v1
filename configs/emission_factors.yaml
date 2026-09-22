@@ -1,0 +1,39 @@
+# Stubble-burning / open-burning emission factors (assumptions).
+#
+# These are PUBLIC-DOMAIN / literature-derived factors used to convert a fire's
+# Fire Radiative Power (FRP, MW from VIIRS/MODIS FIRMS) and burned area into a
+# pollutant mass emission rate. They are ORDER-OF-MAGNITUDE engineering
+# estimates for crop-residue open burning in Punjab/Haryana, NOT measurements.
+#
+# Primary references (public literature):
+#   - Wooster et al. 2005, "Retrieval of biomass combustion rates and totals
+#     from fire radiative power observations" (FRP-to-fuel-consumption: ~0.368
+#     kg dry fuel per MJ FRP).
+#   - Andela et al. 2015 (GFED4) - emission factors for extra-tropical grass/
+#     crop fires.
+#   - CPCB / TERI reports on crop-residue burning in NCR (PM2.5 share used).
+#
+# Nominal conversion used here:
+#     fuel_kg_per_MW_frp = 0.368  kg/MW over the detection window
+#     emitted_g_per_MJ   = fuel_g_per_MJ * EF_species
+
+frp_to_fuel_kg_per_mj: 0.368      # dry fuel burned per MJ FRP (Wooster 2005)
+
+emission_factors:                  # g pollutant per kg dry fuel burned
+  pm25: 8.5                        # crop fires: PM2.5 (literature 5-13; take 8.5)
+  pm10: 12.5                       # PM10 approx PM2.5 * 1.5
+  co: 62.0                         # carbon monoxide (crop residue)
+  nox: 2.5                         # NOx as NO2-equivalents
+  voc: 7.0                         # volatile organic compounds
+  so2: 0.45                        # sulphur dioxide
+  bc: 0.45                         # black carbon share of PM2.5
+  oc: 2.4                          # organic carbon share of PM2.5
+
+# secondary-particle yield: fraction of emitted VOC+NOx that converts to
+# secondary PM2.5 within 24-48 h downwind (aqueous + photochemical pathways).
+secondary_organic_aerosol_yield: 0.15
+secondary_inorganic_aerosol_rate_h: 0.05
+
+urbgum_base_kg_km2_day: 180.0      # Delhi NCR diffuse urban PM source (Census/TERI scale)
+fire_min_frp_mw: 10.0              # ignore detections below this FRP
+fire_lifetime_h: 6.0               # active emission window per detection

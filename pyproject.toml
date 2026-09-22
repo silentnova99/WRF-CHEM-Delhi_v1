@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "aqf-delhi"
-version = "0.1.0"
-description = "Delhi NCR Air Pollution-Weather Coupled Forecasting System — Phase-1 data ingestion pipeline"
+name = "wrf-chem-delhi"
+version = "2.0.0"
+description = "WRF-CHEM DELHI V2 — physics-informed reduced-order coupled atmospheric forecasting (SIH prototype)"
 requires-python = ">=3.11"
 dependencies = [
     "pydantic>=2.6",
@@ -14,6 +14,8 @@ dependencies = [
     "pandas>=2.2",
     "pyarrow>=15.0",
     "python-dateutil>=2.8",
+    "numpy>=1.26",
+    "scipy>=1.12",
 ]
 
 [project.optional-dependencies]
@@ -27,6 +29,10 @@ api = [
     "httpx>=0.27",
     "orjson>=3.9",
 ]
+ml = [
+    "scikit-learn>=1.3",
+    "xgboost>=2.0",
+]
 redis = [
     "redis>=5.0",
 ]
@@ -34,7 +40,6 @@ module2 = [
     "eccodes>=2.36",
     "cfgrib>=0.9",
     "xarray>=2024.1",
-    "scipy>=1.12",
     "netCDF4>=1.6",
 ]
 
@@ -43,7 +48,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 aqf_delhi = ["dashboard/static/*.html", "dashboard/static/*.js", "dashboard/static/*.css"]
+wrf_chem_delhi = ["dashboard_v2/static/*.html", "dashboard_v2/static/*.js", "dashboard_v2/static/*.css"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"

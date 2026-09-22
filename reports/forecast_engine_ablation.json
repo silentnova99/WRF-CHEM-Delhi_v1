@@ -1,0 +1,17 @@
+{
+  "coupled": {
+    "run_id": "v2.20260919.1300.stub",
+    "pm25_mean_72h": 543.12,
+    "pm25_peak": 939.76,
+    "pblh_mean_72h": 904.8,
+    "feedback_strength_mean": 0.0089
+  },
+  "uncoupled": {
+    "run_id": "v2.20260919.1300.stub",
+    "pm25_mean_72h": 522.45,
+    "pm25_peak": 888.19,
+    "pblh_mean_72h": 911.2,
+    "feedback_strength_mean": 0.0
+  },
+  "_note": "FULL COUPLED closes the PM->AOD->radiation->PBL->PM loop (use_feedback=True); COUPLING DISABLED holds met PBL fixed (ablation)."
+}

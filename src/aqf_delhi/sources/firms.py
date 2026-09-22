@@ -57,7 +57,7 @@ class FIRMSConnector:
         collection = collection or self.cfg.default_collection
         day = max(1, int(self.cfg.day_window))
         path = (
-            f"{self.map_key()}/{collection}/{day}/{self.cfg.bbox}"
+            f"{self.map_key()}/{collection}/{self.cfg.bbox}/{day}"
         )
         result = fetch_with_failover(
             [self.cfg.api_base], path, ops=self.ops, timeout=self.ops.request_timeout_seconds

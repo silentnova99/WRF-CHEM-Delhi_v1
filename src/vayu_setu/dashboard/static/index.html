@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VAYU-SETU | Delhi NCR Air Quality Control Console</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{
+  --ink:#0f2233; --mut:#5b6b7b; --line:#d7e0e8; --bg:#eef3f7; --card:#ffffff;
+  --acc:#0b5cad; --acc2:#8fd14f; --warn:#e65100; --good:#4caf50; --sat:#8bc34a;
+  --mod:#ffd54f; --poor:#ff9800; --vpoor:#f44336; --sev:#7b1fa2;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(90deg,#0b3d6e,#0b5cad 55%,#0b85b5);color:#fff;padding:14px 22px;
+  display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between}
+.brand b{font-size:20px;letter-spacing:.5px}
+.brand small{display:block;opacity:.85;font-weight:400}
+.pill{border:1px solid rgba(255,255,255,.45);border-radius:999px;padding:3px 12px;font-size:12px;font-weight:600}
+.pill.live{background:#2e7d32;color:#fff}
+.pill.warn{background:#e65100;color:#fff}
+.meta{font-size:12px;opacity:.9;text-align:right;line-height:1.7}
+main{max-width:1400px;margin:0 auto;padding:18px 22px 60px}
+section{background:var(--card);border:1px solid var(--line);border-radius:10px;margin:16px 0;
+  padding:14px 16px;box-shadow:0 1px 3px rgba(15,34,51,.06)}
+h2{margin:0 0 10px;font-size:15px;color:#0b3d6e;letter-spacing:.3px;text-transform:uppercase}
+h2 .tag{font-weight:400;text-transform:none;color:var(--mut);font-size:12px}
+.grid{display:grid;gap:12px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.kpi{background:#f7fafc;border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.kpi .lbl{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.4px}
+.kpi .val{font-size:24px;font-weight:700;margin-top:2px}
+.kpi .sub{font-size:11px;color:var(--mut)}
+.aqi-swatch{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:7px 9px;border-bottom:1px solid #eef2f6;text-align:right;white-space:nowrap}
+th{color:var(--mut);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.3px;
+  background:#f3f7fb;position:sticky;top:0}
+th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
+tr.clickable{cursor:pointer}
+tr.clickable:hover{background:#f0f7ff}
+.num{font-variant-numeric:tabular-nums}
+.tagdom{font-size:10px;padding:1px 6px;border-radius:999px;font-weight:600}
+.tagdom.yes{background:#e8f5e9;color:#2e7d32}
+.tagdom.no{background:#fdecea;color:#c62828}
+.badge{display:inline-block;min-width:34px;text-align:center;padding:1px 6px;border-radius:999px;
+  color:#fff;font-size:11px;font-weight:700}
+.ctrls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px}
+.ctrls label{font-size:12px;color:var(--mut)}
+select,button{font-family:inherit;font-size:13px;padding:5px 10px;border:1px solid var(--line);
+  border-radius:6px;background:#fff}
+button.primary{background:var(--acc);color:#fff;border-color:var(--acc);cursor:pointer;font-weight:600}
+button.primary:hover{background:#094d94}
+legend{font-size:12px;color:var(--mut);margin-top:8px}
+.chip{display:inline-block;margin:2px 6px 2px 0;padding:2px 9px;border-radius:999px;font-size:11px;
+  background:#eef4fb;color:#17466e;border:1px solid #d5e4f2}
+.alert{border-left:5px solid;padding:8px 12px;margin:6px 0;border-radius:6px;background:#fdfdf5;font-size:13px}
+.alert .sev{font-weight:700}
+.drawer{position:fixed;top:0;right:-560px;width:min(560px,100vw);height:100vh;background:#fff;
+  box-shadow:-4px 0 18px rgba(0,0,0,.18);transition:right .28s ease;z-index:80;overflow:auto}
+.drawer.open{right:0}
+.drawer .dh{position:sticky;top:0;background:#0b3d6e;color:#fff;padding:14px 18px;display:flex;
+  justify-content:space-between;align-items:center}
+.drawer .db{padding:16px 18px 40px}
+.close{cursor:pointer;border:1px solid rgba(255,255,255,.5);background:none;color:#fff;
+  border-radius:6px;padding:3px 10px;font-size:14px}
+.cover{position:fixed;inset:0;background:rgba(15,34,51,.35);z-index:70;display:none}
+.cover.show{display:block}
+svg text{font-family:"Segoe UI",Roboto,Arial,sans-serif}
+footer{max-width:1400px;margin:10px auto 40px;padding:0 22px;color:var(--mut);font-size:12px;line-height:1.7}
+.code{background:#f4f7fa;border:1px solid var(--line);border-radius:6px;padding:8px 10px;
+  font-family:Consolas,monospace;font-size:12px;overflow:auto}
+.mono{font-family:Consolas,monospace}
+#errbar{display:none;background:#fdecea;color:#c62828;border-bottom:2px solid #c62828;
+  padding:10px 22px;font-size:13px;font-weight:600}
+#mapWrap{height:520px;border:1px solid var(--line);border-radius:8px;z-index:1}
+.legendbox{background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px 10px;
+  font-size:11px;line-height:1.5;box-shadow:0 1px 2px rgba(0,0,0,.15)}
+.legendbox .row{display:flex;align-items:center;gap:6px}
+.legendbox .sw{width:12px;height:12px;border-radius:2px;flex:0 0 12px}
+.physVerdict{border:1px solid var(--line);border-left:5px solid #607d8b;background:#fff;border-radius:8px;
+  padding:12px 16px;font-size:13px;margin-bottom:12px;line-height:1.55}
+.physVerdict b{font-size:14px}
+.physVerdict .vTag{display:inline-block;padding:2px 10px;border-radius:12px;color:#fff;font-weight:700;
+  font-size:12px;margin-right:8px}
+.physHead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;padding:10px 14px;
+  background:#fff;border:1px solid var(--line);border-radius:8px;font-size:13px}
+.physHead b{color:#0b3d6e;letter-spacing:.04em}
+.liveDot{width:10px;height:10px;border-radius:50%;background:#43a047;display:inline-block;animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.25}}
+.physHead .vTag{display:inline-block;padding:2px 12px;border-radius:12px;color:#fff;font-weight:700;font-size:12px}
+.physStrip{color:#455a64;font-size:12.5px;font-weight:500}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <b>VAYU-SETU &middot; Delhi NCR Air Quality Console</b>
+    <small>Coupled 72 h forecast for public administration - real observations, reduced-order physics engine + ML + conformal intervals</small>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <span class="pill live" id="pillLive">LIVE</span>
+    <span class="pill" id="pillAnchor">anchor: ...</span>
+    <div class="meta">
+      <div id="metaInit">loading run...</div>
+      <div id="metaAside">...</div>
+    </div>
+  </div>
+</header>
+<div id="errbar"></div>
+<main>
+  <section>
+    <div class="grid kpis" id="kpis"><!-- JS --></div>
+  </section>
+
+  <section>
+    <h2>72 hour forecast - Delhi NCR domain mean <span class="tag">CPCB Indian AQI bands, conformal intervals</span></h2>
+    <div class="ctrls">
+      <label>variable:</label>
+      <select id="fcVar">
+        <option value="pm25">PM2.5</option>
+        <option value="pm10">PM10</option>
+        <option value="o3">O3</option>
+        <option value="aqi">Indian AQI</option>
+      </select>
+      <button class="primary" onclick="refreshAll(true)">Refresh now</button>
+      <span id="fcNote" class="chip"></span>
+    </div>
+    <div id="fcWrap"></div>
+    <legend>Leads shown hour by hour (T+1 .. T+72). Interval band = 90 % conformal halfwidth from validation residuals.</legend>
+  </section>
+
+  <section>
+    <h2>Station detail - latest real observations + point forecasts</h2>
+    <div style="overflow:auto;max-height:480px">
+    <table id="stTab">
+      <thead><tr>
+        <th>City</th><th>State</th><th>Domain</th>
+        <th>Obs PM2.5</th><th>Obs PM10</th><th>Obs O3</th><th>Obs at (UTC)</th>
+        <th>FC 24h PM2.5</th><th>FC 48h</th><th>FC 72h</th><th></th>
+      </tr></thead>
+      <tbody id="stBody"><tr><td colspan="11">loading stations...</td></tr></tbody>
+    </table>
+    </div>
+    <legend>Click a row for the station detail drawer (metadata, observed values, 24/48/72 h forecast). "Domain" marks grid in-domain vs edge-anchored.</legend>
+  </section>
+
+  <section>
+    <h2>Grid maps <span class="tag">real basemap (OpenStreetMap) + 21 x 23 domain overlay, zoom &amp; pan</span></h2>
+    <div class="ctrls">
+      <label>field:</label>
+      <select id="mapKey">
+        <option value="pm25">PM2.5</option>
+        <option value="pm10">PM10</option>
+        <option value="o3">O3</option>
+        <option value="nox">NOx</option>
+        <option value="so2">SO2</option>
+        <option value="co">CO</option>
+        <option value="pblh_m">boundary layer height (m)</option>
+        <option value="feedback_strength">feedback strength</option>
+        <option value="fire_influence">fire influence</option>
+        <option value="trapping_idx">trapping index</option>
+      </select>
+      <label>lead (h):</label>
+      <select id="mapLead"></select>
+      <button class="primary" onclick="loadMap()">Apply overlay</button>
+      <label><input type="checkbox" id="mapFires" checked> stations</label>
+      <label><input type="checkbox" id="mapGrid" checked> grid overlay</label>
+    </div>
+    <div id="mapWrap" class="mapwrap"></div>
+    <div class="code" style="margin-top:8px"><span id="mapMeta">zoom / pan the basemap; the forecast grid is drawn as an overlay.</span></div>
+    <div id="mapLegend" class="legendbox"></div>
+  </section>
+
+  <section>
+    <h2>Physics coupling monitor <span class="tag">live aerosol-met coupling</span></h2>
+    <div class="physHead">
+      <span class="liveDot" id="liveDot"></span><b>LIVE COUPLING</b>
+      <span id="physCplTag" class="vTag">-</span>
+      <span id="physStrip" class="physStrip"></span>
+    </div>
+    <div id="physWrap" style="display:flex;flex-wrap:wrap;gap:12px"></div>
+    <div id="physNote" class="chip" style="margin-top:10px"></div>
+  </section>
+
+  <section>
+    <h2>Live fire exposure <span class="tag">REAL NASA FIRMS detections from the lake</span></h2>
+    <div id="fireKpis" class="grid kpis"></div>
+    <div id="fireInfo"></div>
+  </section>
+
+  <section>
+    <h2>Alerts &amp; advisories <span class="tag">engine rule evaluation</span></h2>
+    <div id="alertList"><span class="chip">no alerts issued</span></div>
+  </section>
+
+  <section>
+    <h2>Provenance &amp; transparency <span class="tag">every number traceable</span></h2>
+    <div id="tx"></div>
+  </section>
+</main>
+
+<div class="cover" id="cover" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="dh"><b id="drTitle">Station</b><button class="close" onclick="closeDrawer()">close</button></div>
+  <div class="db" id="drBody">loading...</div>
+</div>
+
+<footer>
+  <div class="code">VAYU-SETU model.version: <span id="fVersion">-</span> | run_id: <span id="fRunid">-</span> |
+    forecast_init: <span id="fInit">-</span> | data_as_of: <span id="fAsOf">-</span> |
+    sources: <span id="fSources">-</span></div>
+  <p>Government-use prototype for the SIH brief. NOT operational WRF-Chem. Observations are real lake data (CPCB-derived, NASA FIRMS); engine weather is reduced-order (documented). Discrepancies reported to the operational data team before release; anchoring is never applied silently.</p>
+</footer>
+
+<script>
+"use strict";
+const AQI_COL = {"Good":"#4caf50","Satisfactory":"#8bc34a","Moderate":"#ffd54f","Poor":"#ff9800","Very Poor":"#f44336","Severe":"#7b1fa2"};
+const CATS = ["Good","Satisfactory","Moderate","Poor","Very Poor","Severe"];
+const BANDS = {pm25:[[0,30,"Good"],[30,60,"Satisfactory"],[60,90,"Moderate"],[90,120,"Poor"],[120,250,"Very Poor"],[250,1e9,"Severe"]],
+               pm10:[[0,50,"Good"],[50,100,"Satisfactory"],[100,250,"Moderate"],[250,350,"Poor"],[350,430,"Very Poor"],[430,1e9,"Severe"]],
+               o3:[[0,50,"Good"],[50,100,"Satisfactory"],[100,168,"Moderate"],[168,208,"Poor"],[208,748,"Very Poor"],[748,1e9,"Severe"]]};
+const state = {health:null,fc:null,current:null};
+
+function $id(i){return document.getElementById(i);}
+function esc(s){return String(s).replace(/[&<>"]/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':'&quot;'}[m];});}
+function showErr(msg){const e=$id("errbar");e.style.display=msg?"block":"none";e.textContent="Dashboard error: "+msg;console.error(msg);}
+window.onerror=function(m){showErr(String(m));return false;};
+async function safe(fn){try{return await fn();}catch(e){showErr(e&&e.message?e.message:String(e));}return null;}
+async function jget(u){
+  const base=(window&&window.location&&window.location.origin)?window.location.origin:"";
+  const r=await fetch(base+u,{cache:"no-store"});
+  if(!r.ok)throw new Error(u+" "+r.status);
+  return r.json();
+}
+function catOf(species,v){const t=BANDS[species]||BANDS.pm25;for(const b of t){if(v>=b[0]&&v<b[1])return b[2];}return "Severe";}
+function colOf(cat){return AQI_COL[cat]||"#9e9e9e";}
+function bandColor(species,v){return colOf(catOf(species,v));}
+function fmt(v,n){n=n==null?1:n;if(v==null||isNaN(v))return "&ndash;";return Number(v).toFixed(n);}
+function badge(cat){return '<span class="badge" style="background:'+colOf(cat)+'">'+esc(cat)+'</span>';}
+
+async function refreshAll(force){
+  try{
+    if(force){state.fc=null;}
+    const hq=force?"/api/v3/health?force=true":"/api/v3/health";
+    state.health=await jget(hq);
+    state.fc=await jget("/api/v3/forecast"+(force?"?force=true":""));
+    state.current=await jget("/api/v3/current");
+    renderHeader(); renderKPIs(); renderForecast(state.fc); renderStations(state.fc,state.current);
+    renderPhysics(); renderFires(); renderAlerts(); renderTransparency();
+    $id("mapLead").innerHTML="";
+    for(let L=1;L<=72;L+=6){const o=document.createElement("option");o.value=L;o.textContent="T+"+L;if(L===24)o.selected=true;$id("mapLead").appendChild(o);}
+    if(leafletReady())loadMap();
+    $id("metaInit").textContent="forecast init "+state.fc.init_utc.replace("T"," ").slice(0,16)+" UTC | scenario "+state.fc.scenario+" | coupling "+(state.fc.use_feedback?"ON":"OFF");
+  }catch(e){$id("kpis").innerHTML='<div class="kpi"><div class="lbl">error</div><div class="val">API unreachable</div><div class="sub">'+esc(e.message)+'</div></div>';
+    $id("pillLive").className="pill warn";$id("pillLive").textContent="OFFLINE";}
+}
+
+function renderHeader(){
+  document.title="VAYU-SETU | "+state.fc.scenario+" cycle";
+  $id("pillLive").textContent="LIVE";
+  const a=state.fc.anchor||{};
+  $id("pillAnchor").textContent="anchor: "+(a.mode||"?")+" (age "+(a.age_days!=null?a.age_days+" d":"?")+")";
+  const as=[];
+  if(state.fc.data_as_of)as.push("observations as of "+state.fc.data_as_of.slice(0,16)+" UTC");
+  if(state.fc.run_id)as.push("run "+state.fc.run_id);
+  $id("metaAside").textContent=as.join(" | ");
+  $id("fVersion").textContent=state.fc.model_version||"-";
+  $id("fRunid").textContent=state.fc.run_id||"-";
+  $id("fInit").textContent=(state.fc.init_utc||"-").replace("T"," ").slice(0,16);
+  $id("fAsOf").textContent=state.fc.data_as_of||"-";
+  const s=[]
+  const src=state.fc.sources||{};
+  if(src.pollution_observations)s.push(src.pollution_observations);
+  if(src.weather)s.push("weather:"+src.weather);
+  if(src.gfs_cycle&&src.gfs_cycle.available)s.push("GFS "+src.gfs_cycle.files+" files ("+(Object.keys(src.gfs_cycle.cycles||{}).join(","))+")");
+  if(src.firms&&src.firms.available)s.push("FIRMS "+src.firms.n_detections+" detections NCR");
+  $id("fSources").textContent=s.join(" | ");
+}
+
+function renderKPIs(){
+  const fc=state.fc; const ser=fc.series||[]; const cur=state.current||{};
+  const peak=ser.reduce(function(a,b){return b.aqi>a.aqi?b:a;},{aqi:-1});
+  const curSt=(cur.stations||[]).filter(function(s){return s.in_domain;});
+  function domMean(species){
+    const vals=curSt.map(function(s){return s[species];}).filter(function(v){return v!=null;});
+    if(!vals.length)return null;return vals.reduce(function(a,b){return a+b;},0)/vals.length;
+  }
+  const now=ser.find(function(s){return s.lead_h===0;})||ser[0]||{};
+  const t24=ser.find(function(s){return s.lead_h===24;})||now;
+  const cPM25=domMean("pm25");
+  const k=[
+    {l:"Domain nowcast PM2.5 (real obs)",v:fmt(cPM25),u:"ug/m3",sw:bandColor("pm25",cPM25)},
+    {l:"Current AQI (init hour)",v:now.aqi!=null?now.aqi:"-",u:now.category||"",sw:now.category?colOf(now.category):"#ccc"},
+    {l:"72 h peak AQI",v:peak.aqi!=null?peak.aqi:"-",u:peak.category||"",sw:peak.category?colOf(peak.category):"#ccc"},
+    {l:"T+24 PM2.5",v:fmt(t24.pm25),u:"ug/m3",sw:bandColor("pm25",t24.pm25)},
+    {l:"T+24 PM10",v:fmt(t24.pm10),u:"ug/m3",sw:bandColor("pm10",t24.pm10)},
+    {l:"T+24 O3",v:fmt(t24.o3),u:"ug/m3",sw:bandColor("o3",t24.o3)},
+    {l:"PBL height T+24",v:fmt(t24.pblh_m,0),u:"m"},
+    {l:"Feedback strength",v:fmt(t24.feedback_strength,3),u:""},
+    {l:"Trapping index",v:fmt(t24.trapping_idx,2),u:""},
+    {l:"Stations reporting",v:curSt.length,u:"of "+cur.stations.length+" in-domain"}
+  ];
+  $id("kpis").innerHTML=k.map(function(x){
+    return '<div class="kpi"><div class="lbl"><span class="aqi-swatch" style="background:'+(x.sw||"#e0e0e0")+'"></span>'+x.l+'</div>'+
+      '<div class="val num">'+x.v+'</div><div class="sub">'+esc(x.u||"")+'</div></div>';
+  }).join("");
+}
+
+function renderForecast(fc){
+  const ser=fc.series||[];
+  const v=$id("fcVar").value;
+  let vals,hwlo,hwhi,unit,yT,yB;
+  if(v==="aqi"){
+    vals=ser.map(function(s){return s.aqi;});unit="AQI";yT=520;yB=0;
+    hwlo=ser.map(function(){return null;});hwhi=ser.map(function(){return null;});
+  }else{
+    vals=ser.map(function(s){return s[v];});unit="ug/m3";
+    yT=ser.map(function(s){return s[v+"_hi"];}).filter(function(x){return x!=null;});
+    yB=ser.map(function(s){return s[v+"_lo"];}).filter(function(x){return x!=null;});
+    const mx=Math.max.apply(null,vals);
+    yT=mx*1.15||50;yB=0;
+    hwlo=ser.map(function(s){return s[v+"_lo"];});
+    hwhi=ser.map(function(s){return s[v+"_hi"];});
+    if(v!=="pm25"){hwlo=ser.map(function(){return null;});hwhi=ser.map(function(){return null;});}
+  }
+  const n=ser.length; const W=980,H=320,padL=60,padR=16,padT=18,padB=38;
+  const x=function(i){return padL+(W-padL-padR)*i/(n-1);};
+  const y=function(v2){return padT+(H-padT-padB)*(1-(v2-yB)/(yT-yB));};
+  const path=vals.map(function(v2,i){return (i?"L":"M")+x(i).toFixed(1)+","+y(v2).toFixed(1);}).join(" ");
+  const times=ser.map(function(s){return s.time.replace("T"," ").slice(5,16)+" UTC";});
+  let s="";
+  s+='<svg width="100%" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">';
+  if(v==="aqi"){for(const c of CATS){const b=BANDS.pm25;}}
+  if(v==="aqi"){const catB=[["Good",0,50],["Satisfactory",50,100],["Moderate",100,200],["Poor",200,300],["Very Poor",300,400],["Severe",400,520]];
+    for(const cb of catB){s+='<rect x="'+padL+'" y="'+y(cb[2])+'" width="'+(W-padL-padR)+'" height="'+((y(cb[1])-y(cb[2]))||1)+'" fill="'+colOf(cb[0])+'" opacity="0.14"></rect>';}}
+  if(hwlo&&hwlo[0]!=null){let h="";hwlo.forEach(function(v2,i){h+=(i?"L":"M")+x(i).toFixed(1)+","+y(v2).toFixed(1);});h+=" L"+x(n-1).toFixed(1)+","+y(hwhi[n-1]).toFixed(1);for(let i=n-2;i>=0;i--){h+=" L"+x(i).toFixed(1)+","+y(hwhi[i]).toFixed(1);}h+=" Z";s+='<path d="'+h+'" fill="#0b5cad" opacity="0.12"></path>';}
+  s+='<path d="'+path+'" fill="none" stroke="#0b5cad" stroke-width="2.4"></path>';
+  const gridN=6;for(let i=0;i<=gridN;i++){const yy=y(yB+(yT-yB)*i/gridN);s+='<line x1="'+padL+'" x2="'+(W-padR)+'" y1="'+yy.toFixed(1)+'" y2="'+yy.toFixed(1)+'" stroke="#e3eaf1"></line>';
+    s+='<text x="'+(padL-6)+'" y="'+(yy+4)+'" text-anchor="end" font-size="10" fill="#5b6b7b">'+Math.round(yB+(yT-yB)*i/gridN)+'</text>';}
+  s+='<line x1="'+padL+'" x2="'+padL+'" y1="'+padT+'" y2="'+(H-padB)+'" stroke="#c9d5e0"></line>';
+  for(let i=0;i<n;i+=6){s+='<text x="'+x(i).toFixed(1)+'" y="'+(H-padB+14)+'" text-anchor="middle" font-size="9" fill="#5b6b7b">'+esc(times[i])+'</text>';}
+  s+='</svg>';
+  $id("fcWrap").innerHTML=s;
+  $id("fcNote").innerHTML=esc("72 h mean "+v+" = "+fmt(vals.reduce(function(a,b){return a+b;},0)/n,1)+" "+unit);
+}
+
+function renderStations(fc,current){
+  const cSt=current.stations||[];
+  const fcSt=fc.stations||[];
+  const rows=fcSt.map(function(st){
+    const obs=cSt.find(function(o){return o.city.toLowerCase()===st.city.toLowerCase();})||{};
+    const s0=st.series[0]||{},s1=st.series[1]||{},s2=st.series[2]||{};
+    const p=[((s0.pm25!=null)?s0.pm25:"-"),((s1.pm25!=null)?s1.pm25:"-"),((s2.pm25!=null)?s2.pm25:"-")];
+    const q=JSON.stringify(st.city).replace(/"/g,"&quot;");
+    return '<tr class="clickable" onclick="openStation('+q+')">'+
+      '<td><b>'+esc(st.city)+'</b></td><td>'+esc(st.state||"")+'</td>'+
+      '<td><span class="tagdom '+(st.in_domain?"yes":"no")+'">'+(st.in_domain?"IN":"EDGE")+'</span></td>'+
+      '<td class="num">'+fmt(obs.pm25)+' <span class="badge" style="background:'+bandColor("pm25",obs.pm25)+'">'+esc(catOf("pm25",obs.pm25))+'</span></td>'+
+      '<td class="num">'+fmt(obs.pm10)+'</td><td class="num">'+fmt(obs.o3)+'</td>'+
+      '<td class="num mono">'+esc((obs.time||"").slice(5,16))+'</td>'+
+      '<td class="num">'+fmt(p[0])+'</td><td class="num">'+fmt(p[1])+'</td><td class="num">'+fmt(p[2])+'</td>'+
+      '<td><span class="chip">detail</span></td></tr>';
+  }).join("");
+  $id("stBody").innerHTML=rows||'<tr><td colspan="11">no stations</td></tr>';
+}
+function openStation(city){
+  const st=state.fc.stations.find(function(s){return s.city===city;});
+  if(!st)return;
+  $id("drTitle").textContent=st.city;
+  const obs=(state.current.stations||[]).find(function(o){return o.city.toLowerCase()===city.toLowerCase();})||{};
+  let b='<table style="font-size:13px">';
+  b+='<tr><td>State</td><td>'+esc(st.state||"-")+'</td></tr>';
+  b+='<tr><td>Lat / Lon</td><td class="num mono">'+st.lat+' / '+st.lon+'</td></tr>';
+  b+='<tr><td>Domain cell</td><td><span class="tagdom '+(st.in_domain?"yes":"no")+'">'+(st.in_domain?"in-domain (NCR grid)":"edge-anchored (grid boundary)")+'</span></td></tr>';
+  b+='<tr><td>Observed (real)</td><td class="num">PM2.5 '+fmt(obs.pm25)+' | PM10 '+fmt(obs.pm10)+' | O3 '+fmt(obs.o3)+' <span class="mono">(UTC '+esc((obs.time||"").slice(11,16))+')</span></td></tr>';
+  b+='<tr><td>Weather</td><td class="num">T '+fmt(obs.temperature_c)+' C | RH '+fmt(obs.rh_pct)+' %'+(obs.wind_stagnation?' | STAGNANT':'')+(obs.inversion?' | INVERSION':'')+'</td></tr>';
+  b+='<tr><td>AOD (last obs)</td><td class="num">'+fmt(obs.aod,2)+'</td></tr>';
+  b+='</table>';
+  b+='<h2 style="margin-top:18px">Point forecast (anchored ILWOS)</h2>';
+  b+='<table id="drT" style="font-size:13px"><thead><tr><th>Lead</th><th>PM2.5</th><th>PM10</th><th>O3</th></tr></thead><tbody>';
+  (st.series||[]).forEach(function(s){b+='<tr><td>T+'+s.lead_h+'</td><td class="num">'+fmt(s.pm25)+'</td><td class="num">'+fmt(s.pm10)+'</td><td class="num">'+fmt(s.o3)+'</td></tr>';});
+  b+='</tbody></table>';
+  b+='<h2 style="margin-top:18px">24 / 48 / 72 h bars</h2><svg id="drChart" width="100%" viewBox="0 0 480 180"></svg>';
+  $id("drBody").innerHTML=b;
+  const pts=["pm25","pm10","o3"],cols=["#0b5cad","#e65100","#7b1fa2"];
+  let svg='';
+  const W=480;pts.forEach(function(p,pi){
+    const x0=40+pi*(W/3);svg+='<text x="'+(x0+50)+'" y="18" font-size="11" fill="'+cols[pi]+'">'+p.toUpperCase()+'</text>';
+    const ser=st.series||[];const g=ser.filter(function(s){return(s.lead_h%24===0)&&s.lead_h>0;});
+    const mx=Math.max.apply(null,g.map(function(s){return s[p]||0;}).concat([1]));
+    g.forEach(function(s,gi){
+      const h=Math.max(4,(s[p]||0)/mx*120);
+      svg+='<rect x="'+(x0+gi*36)+'" y="'+(150-h)+'" width="26" height="'+h+'" fill="'+cols[pi]+'" opacity="0.8"></rect>';
+      svg+='<text x="'+(x0+gi*36+13)+'" y="'+(170)+'" text-anchor="middle" font-size="9">'+(s.lead_h)+'</text>';
+    });
+  });
+  $id("drChart").innerHTML=svg;
+  $id("cover").classList.add("show");$id("drawer").classList.add("open");
+}
+function closeDrawer(){$id("cover").classList.remove("show");$id("drawer").classList.remove("open");}
+
+function renderPhysics(){
+  const ser=state.fc.series||[];
+  const n=ser.length;
+  function aver(name){
+    const v=ser.map(function(s){return s[name];}).filter(function(x){return x!=null;});
+    return v.length?v.reduce(function(a,b){return a+b;},0)/v.length:0;
+  }
+  function peakv(name){
+    const v=ser.map(function(s){return s[name];}).filter(function(x){return x!=null;});
+    return v.length?Math.max.apply(null,v):0;
+  }
+  function miniChart(name,label,unit,color){
+    const vals=ser.map(function(s){return s[name]!=null?s[name]:0;});
+    const W=430,H=190,padL=46,padR=10,padT=40,padB=22;
+    const mx=Math.max.apply(null,vals);const mn=Math.min.apply(null,vals);
+    const rng=Math.max(mx-mn,1e-6);
+    const x=function(i){return padL+(W-padL-padR)*i/(Math.max(vals.length-1,1));};
+    const y=function(v){return padT+(H-padT-padB)*(1-(v-mn)/rng);};
+    const path=vals.map(function(v,i){return (i?"L":"M")+x(i).toFixed(1)+","+y(v).toFixed(1);}).join(" ");
+    let s='<svg width="'+(n>40?98:100)+'%" viewBox="0 0 '+W+' '+H+'">';
+    s+='<line x1="'+padL+'" y1="'+padT+'" x2="'+padL+'" y2="'+(H-padB)+'" stroke="#cfd8dc"></line>';
+    s+='<line x1="'+padL+'" y1="'+(H-padB)+'" x2="'+(W-padR)+'" y2="'+(H-padB)+'" stroke="#cfd8dc"></line>';
+    s+='<text x="4" y="'+(padT+4)+'" font-size="10" fill="#90a4ae">'+mx.toFixed(1)+'</text>';
+    s+='<text x="4" y="'+(H-padB)+'" font-size="10" fill="#90a4ae">'+mn.toFixed(1)+'</text>';
+    s+='<text x="'+padL+'" y="14" font-size="13" font-weight="700" fill="#0b3d6e">'+esc(label)+'</text>';
+    s+='<text x="'+padL+'" y="27" font-size="10.5" fill="#78909c">now '+fmt(ser[n-1]&&ser[n-1][name])+' &middot; '+fmt(ser[0]&&ser[0][name])+' &rarr; T+'+((ser[n-1]&&ser[n-1].lead_h)||"-")+' &middot; avg '+fmt(aver(name),1)+' &middot; peak '+fmt(peakv(name),1)+'</text>';
+    s+='<path d="'+path+'" fill="none" stroke="'+color+'" stroke-width="2"></path>';
+    s+='</svg>';
+    return s;
+  }
+  const coupling=!!state.fc.use_feedback;
+  const pm=aver("pm25"),fb=aver("feedback_strength"),fbPk=peakv("feedback_strength"),
+        tr=aver("trapping_idx"),secV=aver("secondary_pm"),pblhA=aver("pblh_m");
+  let ampHours=0;
+  ser.forEach(function(s){if((s.feedback_strength||0)>0.5&&(s.trapping_idx||0)>0.5)ampHours++;});
+  const secFrac=pm>0?Math.min(100,100*0.35*secV/pm):0;
+  let tag,tcol;
+  if(!coupling){tag="COUPLING OFF";tcol="#607d8b";}
+  else if(fb>=0.5||ampHours>=6){tag="SELF-AMPLIFYING";tcol="#c62828";}
+  else if(fb>=0.25){tag="COUPLED ELEVATED";tcol="#e65100";}
+  else{tag="STABLE";tcol="#2e7d32";}
+  $id("liveDot").style.background=tcol==="#c62828"?"#f44336":"#43a047";
+  $id("physCplTag").textContent=tag+" | feedback "+fb.toFixed(3)+" | peak "+fbPk.toFixed(3);
+  $id("physCplTag").style.background=tcol;
+  $id("physStrip").innerHTML="PM2.5 <b>"+fmt(pm)+"</b> µg/m3 &nbsp;|&nbsp; secondary <b>"+fmt(secV)+"</b> &nbsp;|&nbsp; PBL <b>"+Math.round(pblhA)+"</b> m &nbsp;|&nbsp; trapping <b>"+tr.toFixed(2)+"</b> &nbsp;|&nbsp; self-amplifying hours <b>"+ampHours+"</b>";
+  $id("physWrap").innerHTML=
+    miniChart("feedback_strength","Aerosol-met feedback strength","0-1","#e65100")+
+    miniChart("pblh_m","Boundary layer height (coupled response)","m","#0b5cad")+
+    miniChart("secondary_pm","Secondary PM formed in-cell","µg/m3","#7b1fa2")+
+    miniChart("pm25","Aerosol loading (PM2.5)","µg/m3","#0b5cad")+
+    miniChart("trapping_idx","Trapping index","0-1","#7b1fa2")+
+    miniChart("vent_idx","Ventilation index","index","#00897b");
+  $id("physNote").textContent="Coupling = PM2.5 lowers the PBL, less mixing accumulates more aerosol. "+
+    (coupling?"Feedback loop ACTIVE in this run.":"This run disables the feedback (ablation reference).")+
+    " Values are 72 h domain means over the NCR grid. Scenario "+esc(state.fc.scenario||"-")+", init "+
+    esc((state.fc.init_utc||"").replace("T"," ").slice(0,16));
+}
+
+function renderFires(){
+  const f=(state.fc.sources||{}).firms||{};
+  const cells=[];
+  if(f.available){cells.push({l:"FIRMS detections (NCR box)",v:f.n_detections});
+    cells.push({l:"Total FRP (MW)",v:fmt(f.frp_sum_mw,0)});
+    cells.push({l:"Last detection",v:(f.last_detection_at||"-").slice(0,16)});
+    cells.push({l:"Area",v:"lat "+f.area});
+  }else{cells.push({l:"FIRMS",v:"no data",u:"DATA_UNAVAILABLE"});}
+  $id("fireKpis").innerHTML=cells.map(function(c){return '<div class="kpi"><div class="lbl">'+c.l+'</div><div class="val">'+c.v+'</div><div class="sub">'+esc(c.u||"")+'</div></div>';}).join("");
+  $id("fireInfo").innerHTML="The FIRMS window covers the NW-India/NCR box for 2024-11 .. 2025-07 (real detections); outside that period engine fire channels are zero (documented).";
+}
+
+function renderAlerts(){
+  const al=state.fc.alerts||[];
+  if(!al.length){$id("alertList").innerHTML='<span class="chip">no alerts issued</span>';return;}
+  $id("alertList").innerHTML=al.map(function(a){
+    const sev=a.severity||"info";const c=sev.toLowerCase().indexOf("severe")>=0?"#7b1fa2":(sev.toLowerCase().indexOf("high")>=0?"#f44336":"#ff9800");
+    const msg=a.message||JSON.stringify(a).slice(0,200);
+    return '<div class="alert" style="border-color:'+c+'"><div class="sev">'+esc(sev.toUpperCase())+'</div><div>'+esc(msg)+'</div></div>';
+  }).join("");
+}
+
+function renderTransparency(){
+  const f=state.fc;const a=f.anchor||{};
+  const src=f.sources||{};
+  const gg=src.gfs_cycle||{};
+  let h="";
+  h+='<div><b>Anchor (nowcast DC correction):</b> mode='+esc(a.mode||"-")+', age='+fmt(a.age_days,1)+' days, limit '+fmt(a.anchor_max_age_days,0)+' d -> offsets '+
+    (a.offsets_ugm3?Object.keys(a.offsets_ugm3).map(function(k){return k+" "+fmt(a.offsets_ugm3[k],2);}).join(", "):"-")+'</div>';
+  h+='<div><b>Data mode:</b> Mode B (authoritative/live) - Kaggle unavailable, nothing synthesised; unavailable sources recorded as such.</div>';
+  h+='<div><b>GFS objective subset:</b> '+(gg.available?gg.files+" GRIB2 files, cycle "+Object.keys(gg.cycles||{}).join(","):"none")+' - '+(gg.caveat||"")+'</div>';
+  h+='<div><b>Conformal intervals:</b> '+esc(f.interval_note||"-")+'</div>';
+  $id("tx").innerHTML=h;
+}
+
+/* ----- real basemap (Leaflet + OSM) with the 21x23 forecast grid as overlay ----- */
+const DOMAIN={latMin:28.2,latMax:29.0,lonMin:76.8,lonMax:77.6};
+let _map=null,_gridLayer=null,_stLayer=null,_mapMode=null,_mapBusy=0,_mapFit=false;
+
+function leafletReady(){return typeof L!=="undefined"&&!!L&&!!L.map;}
+
+function initMap(){
+  if(!leafletReady()||_map)return _map;
+  _map=L.map("mapWrap",{zoomControl:true,center:[28.64,77.21],zoom:9}).setView([28.64,77.21],9);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{
+    maxZoom:18,attribution:"© OpenStreetMap contributors"
+  }).addTo(_map);
+  _gridLayer=L.layerGroup().addTo(_map);
+  _stLayer=L.layerGroup().addTo(_map);
+  _mapMode="leaflet";
+  return _map;
+}
+
+function buildLegend(key){
+  const t=key==="pm10"?BANDS.pm10:(key==="o3"?BANDS.o3:BANDS.pm25);
+  const rows=CATS.map(function(c){
+    const b=t.find(function(x){return x[2]===c;});
+    return '<div class="row"><span class="sw" style="background:'+colOf(c)+'"></span> '+esc(c)+'</div>';
+  }).join("");
+  return '<b>'+esc(key)+' severity</b><br>'+rows;
+}
+
+function drawGrid(m){
+  const ny=m.ny||23,nx=m.nx||21,vals=m.values||[];
+  if(!vals.length)return;
+  const dLat=(DOMAIN.latMax-DOMAIN.latMin)/ny,dLon=(DOMAIN.lonMax-DOMAIN.lonMin)/nx;
+  const isGeom=["pm25","pm10","o3","nox","so2","co"].indexOf(m._key)>=0;
+  _gridLayer.clearLayers();
+  for(let i=0;i<ny;i++){
+    const latC=DOMAIN.latMin+(i+0.5)*dLat;
+    for(let j=0;j<nx;j++){
+      const lonC=DOMAIN.lonMin+(j+0.5)*dLon;
+      const raw=vals[i*nx+j];if(raw==null)continue;
+      let fill;
+      if(isGeom)fill=bandColor(m._key,raw);else{const mn=0,mx=Math.max.apply(null,vals);
+        fill="hsl("+Math.round(210-190*(raw-mn)/Math.max(mx-mn,1e-9))+",75%,55%)";}
+      const r=L.rectangle([[latC-dLat/2,lonC-dLon/2],[latC+dLat/2,lonC+dLon/2]],{
+        color:"#ffffff",weight:0.5,fillColor:fill,fillOpacity:0.65,opacity:0.7
+      }).addTo(_gridLayer);
+      r.bindPopup("<b>"+esc(m._key)+"</b> T+"+m.lead_h+" h<br>cell ("+i+","+j+") = <b>"+Number(raw).toFixed(1)+"</b>");
+    }
+  }
+  _gridLayer.addTo(_map);
+  if(!_mapFit){_map.fitBounds([[DOMAIN.latMin-0.02,DOMAIN.lonMin-0.02],[DOMAIN.latMax+0.02,DOMAIN.lonMax+0.02]]);_mapFit=true;}
+}
+
+function drawStationMarkers(){
+  _stLayer.clearLayers();
+  const seen={};
+  (state.fc.stations||[]).forEach(function(st){
+    if(seen[st.city])return;seen[st.city]=1;
+    const obs=(state.current.stations||[]).find(function(o){return o.city.toLowerCase()===st.city.toLowerCase();});
+    const val=obs&&obs.pm25!=null?obs.pm25:null;
+    const col=val!=null?bandColor("pm25",val):"#9e9e9e";
+    const mk=L.circleMarker([st.lat,st.lon],{radius:6,color:"#fff",weight:1.5,fillColor:col,fillOpacity:0.95}).addTo(_stLayer);
+    mk.bindPopup("<b>"+esc(st.city)+"</b><br>obs PM2.5: "+fmt(val)+"<br>state: "+esc(st.state||"-"));
+  });
+  _stLayer.addTo(_map);
+}
+
+async function loadMap(){
+  const useLeaflet=leafletReady();
+  const lead=parseInt($id("mapLead").value,10);
+  if(isNaN(lead)||lead<1||_mapBusy)return;
+  _mapBusy=1;
+  try{
+    if(useLeaflet){
+      initMap();
+      const key=$id("mapKey").value;
+      const m=await jget("/api/v3/map/"+key+"/"+lead);
+      m._key=key;
+      drawGrid(m);drawStationMarkers();
+      $id("mapLegend").innerHTML=buildLegend(key);
+      const av=m.values,as=av.slice().sort(function(a,b){return a-b;});
+      const p50=as[Math.floor(as.length*0.5)],p95=as[Math.floor(as.length*0.95)],pmax=as[as.length-1];
+      const over=av.filter(function(x){return x>430;}).length;
+      $id("mapMeta").textContent="run_id "+m.run_id+" | scenario "+m.scenario+" | valid "+m.time.
+        replace("T"," ").slice(0,16)+" | "+key+" p50="+p50.toFixed(0)+" p95="+p95.toFixed(0)+
+        " max="+pmax.toFixed(0)+" | cells above severe (430): "+over+
+        " | color-capped at severe band (raw cell values shown in popups)";
+      if(!$id("mapGrid").checked)_gridLayer.clearLayers();
+      if(!$id("mapFires").checked)_stLayer.clearLayers();
+      return;
+    }
+    // fallback: static SVG grid when Leaflet CDN is blocked
+    const m=await jget("/api/v3/map/"+$id("mapKey").value+"/"+lead);
+    const ny=m.ny,nx=m.nx;const vals=m.values||[];if(!vals.length)throw new Error("empty field");
+    const mx=Math.max.apply(null,vals),mn=Math.min.apply(null,vals);
+    const geom="pm25_pm10_o3_nox_so2_co".indexOf($id("mapKey").value)>=0;
+    const cell=Math.max(Math.floor(720/Math.max(nx,ny)),18);
+    const W2=nx*cell+16,H2=ny*cell+30;
+    let s='<svg width="100%" viewBox="0 0 '+W2+' '+H2+'" style="background:#f7fafc;border:1px solid #d7e0e8;border-radius:6px">';
+    for(let i=0;i<ny;i++){for(let j=0;j<nx;j++){const v=vals[i*nx+j]||0;
+      let c;if(geom)c=bandColor($id("mapKey").value,v);else c="hsl("+Math.round(210-190*(v-mn)/Math.max(mx-mn,1e-9))+",80%,60%)";
+      s+='<rect x="'+(8+j*cell)+'" y="'+(22+i*cell)+'" width="'+(cell-1)+'" height="'+(cell-1)+'" fill="'+c+'" opacity="0.85"></rect>';}}
+    s+='</svg>';
+    $id("mapWrap").innerHTML=s;
+    $id("mapMeta").textContent="SVG fallback (Leaflet CDN blocked) | run "+m.run_id+" | valid "+m.time;
+    $id("mapLegend").innerHTML=buildLegend($id("mapKey").value);
+  }catch(e){$id("mapMeta").textContent="map error: "+e.message;showErr(e.message);}
+  finally{_mapBusy=0;}
+}
+$id("mapKey").addEventListener("change",function(){if(leafletReady())loadMap();});
+$id("mapLead").addEventListener("change",function(){if(leafletReady())loadMap();});
+$id("mapFires").addEventListener("change",function(){if(_stLayer){$id("mapFires").checked?_stLayer.addTo(_map):_stLayer.clearLayers();}});
+$id("mapGrid").addEventListener("change",function(){loadMap();});
+setTimeout(function(){if(leafletReady())loadMap();},1500);
+
+$id("fcVar").addEventListener("change",function(){renderForecast(state.fc);});
+refreshAll(false);
+setInterval(function(){refreshAll(false);},10*60*1000);
+</script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+generated_at: '2026-09-19T18:31:44Z'
+cpcb:
+  provider_candidates:
+  - name: Delhi Air Quality Time Series Data 2025 to 2026-05
+    provider: Kaggle/jaspreetsingh9652
+    kaggle_id: jaspreetsingh9652/delhi-air-quality-time-series-data-2025-to-2026-05
+    url: https://www.kaggle.com/datasets/jaspreetsingh9652/delhi-air-quality-time-series-data-2025-to-2026-05
+    coverage: 2025-02 -> 2026-05, 4 CAAQMS stations
+    vars:
+    - pm25
+    - pm10
+    - no2
+    - 'no'
+    - nox
+    - o3
+    - co
+    - so2
+    - T
+    - RH
+    - WS
+    - WD
+    license: CC0
+    verdict: reject-fallback
+  - name: India Real-Time AQI (Hourly)
+    provider: Kaggle/imrancoder786
+    kaggle_id: imrancoder786/india-real-time-air-quality-index-aqi-hourly
+    url: https://www.kaggle.com/datasets/imrancoder786/india-real-time-air-quality-index-aqi-hourly
+    coverage: 2016-2026 all India hourly
+    license: Kaggle ToS
+    verdict: reject-unvetted
+  - name: Air Quality Data in India 2015-2020 (CPCB NAMP daily)
+    provider: Kaggle/rohanrao
+    kaggle_id: rohanrao/air-quality-data-in-india
+    url: https://www.kaggle.com/datasets/rohanrao/air-quality-data-in-india
+    coverage: 2015-2020 daily, multi-city
+    verdict: reject-coarse
+  authoritative_sources:
+  - airquality.cpcb.gov.in CCR repository (per-station history)
+  - data.gov.in OGD resource 3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69 (live OGD API -
+    already ingested in repo, 2026-09-12 partition present)
+  - 'Local extracts on disk: processed_aqi_data.csv (Delhi NCR 5 stations, 2019-2024
+    hourly), INDIA_AQI_COMPLETE_20251126.csv (29 cities 2022-2025 hourly + met + AOD)'
+  final_decision: "USE_AUTHORITATIVE_LOCAL \u2014 local real CPCB-derived extracts\
+    \ + live OGD partition; Kaggle rejected as convenience-only."
+  status: DATA_AVAILABLE
+  primary_selected: local
+gfs:
+  provider_candidates:
+  - name: India Historical Climate Data 2014-2023 (Open-Meteo ERA5)
+    provider: Kaggle/thearkknight
+    kaggle_id: thearkknight/india-historical-climate-data-2014-2023
+    url: https://www.kaggle.com/datasets/thearkknight/india-historical-climate-data-2014-2023
+    verdict: reject-not-gfs
+    note: station-point ERA5, not native GFS, no PBLH
+  - name: Meterological factors of india (2023, ERA5 with PBLH)
+    provider: Kaggle/moonknightmarvel
+    kaggle_id: moonknightmarvel/era5-2023
+    url: https://www.kaggle.com/datasets/moonknightmarvel/era5-2023
+    verdict: reject-single-year
+    note: only 2023
+  authoritative_sources:
+  - NOMADS filter_gfs_0p25.pl (live, verified reachable, ~4 KB/hour subregion)
+  - NCAR RDA ncep-gfs-0-25-degree-historical-archive (2015-2026)
+  - AWS noaa-gfs-bdp-pds (rolling 4-week s3 mirror)
+  final_decision: "USE_NOMADS_LIVE \u2014 verified subregion GRIB2 fetch for operational\
+    \ cycles; history via Open-Meteo ERA5 archive for the training era (documented\
+    \ as ERA5/GFS-analogue met) and RDA for full GFS backfill."
+  status: DATA_AVAILABLE
+  primary_selected: nomads
+firms:
+  provider_candidates:
+  - name: 'FIRE FROM SPACE: INDIA 8 YEARS'
+    provider: Kaggle/sherkhan15
+    kaggle_id: sherkhan15/indian-wildfire-nasa-dataset-8-years
+    url: https://www.kaggle.com/datasets/sherkhan15/indian-wildfire-nasa-dataset-8-years
+    coverage: 2012-2020 VIIRS 375m + MODIS India
+    verdict: verified-real
+    note: directly FIRMS-derived, DOI-cited
+  - name: NASA VIIRS Fire History (Global NRT)
+    provider: Kaggle/yatharth22bce11044
+    kaggle_id: yatharth22bce11044/viirs-fire-history
+    url: https://www.kaggle.com/datasets/yatharth22bce11044/viirs-fire-history
+    verdict: verified-real
+  authoritative_sources:
+  - "NASA FIRMS archive (firms.modaps.eosdis.nasa.gov) \u2014 local exports present:\
+    \ fire_nrt_SV-C2_565336.csv (VIIRS S-NPP), fire_nrt_J1V-C2_565335.csv (NOAA-20),\
+    \ fire_nrt_M-C61_565334.csv (MODIS), fire_nrt_SV-C2_634473.csv (later VIIRS window)"
+  final_decision: "USE_LOCAL_FIRMS \u2014 real NASA FIRMS NRT exports on disk; Kaggle\
+    \ mirrors equivalent; FIRMS bbox grid download for top-ups."
+  status: DATA_AVAILABLE
+  primary_selected: local
+aod:
+  provider_candidates:
+  - name: Kolkata Open-Meteo AQ (cams_global AOD/pollutants)
+    provider: Kaggle/nitirajkulkarni
+    kaggle_id: nitirajkulkarni/kolkata-in-1275004
+    verdict: reject-city
+    note: "Kolkata, not Delhi \u2014 pattern reference only"
+  authoritative_sources:
+  - Open-Meteo Air Quality API CAMS aerosol_optical_depth (keyless, 2022-08+; verified
+    reachable)
+  - MODIS MAIAC MCD19A2.061 (1 km daily, via LP DAAC / Earth Engine)
+  - 'Local: AOD column inside INDIA_AQI_COMPLETE_20251126.csv (2022-2025)'
+  final_decision: "USE_OPEN_METEO_CAMS + LOCAL_AOD_COLUMN \u2014 calibrated emissivity/attenuation\
+    \ factor uses actual AOD; no fabrication."
+  status: DATA_AVAILABLE
+  primary_selected: open_meteo_cams
+emissions:
+  provider_candidates: []
+  authoritative_sources:
+  - "HTAP v3.x mosaic (JRC-EDGAR, REAS-fill, 0.1 deg) \u2014 ~200 GB, out of budget\
+    \ for prototype"
+  - UEinfo gridded inventories Delhi/NCR 1 km
+  - configs/emission_factors.yaml (already in repo, Wooster-2005 FRP->fuel, species
+    EFs)
+  final_decision: "REFERENCED_NOT_DOWNLOADED \u2014 fire emissions derived from FRP\
+    \ at runtime via existing engine; urban baseline from emission_factors.yaml. HTAP/UEinfo\
+    \ documented for production hand-off."
+  status: DATA_UNAVAILABLE
+  primary_selected: referenced
