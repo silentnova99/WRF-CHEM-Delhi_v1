@@ -1,0 +1,41 @@
+{
+  "species": "o3",
+  "hybrid": {
+    "engine": {
+      "label": "vayu-setu",
+      "mbe": 3.2873083394149254,
+      "mae": 12.30418646563972,
+      "rmse": 17.07790384757773,
+      "spe": 0.07849412048965987
+    },
+    "interval_halfwidth": 1.545112241826145,
+    "interval_coverage_100": 98.51532567049809,
+    "n_nodes": 29,
+    "species": "o3",
+    "coupling": true,
+    "run_id": "run.20260919.170027"
+  },
+  "baselines": {
+    "persistence": {
+      "label": "persistence",
+      "mbe": 26.256226053639846,
+      "mae": 38.5742337164751,
+      "rmse": 52.08981798711754,
+      "spe": 0.3683808485422464
+    },
+    "climatology": {
+      "label": "climatology",
+      "mbe": 16.020758073344282,
+      "mae": 26.513861521620143,
+      "rmse": 33.527578047299,
+      "spe": 0.40853676575588715
+    },
+    "xgb_direct": {
+      "label": "xgb_direct",
+      "mbe": 9.506372267259035,
+      "mae": 38.97694183035372,
+      "rmse": 47.778416748271134,
+      "spe": 0.5165713085434143
+    }
+  }
+}

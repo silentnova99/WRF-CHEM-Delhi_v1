@@ -1,0 +1,26 @@
+generated_at: '2026-09-19T18:32:10Z'
+tiers:
+  raw:
+    path: C:\Users\diwan\Desktop\wrf-chem delhi v1\data\raw
+    files: 32
+    bytes: 953300280
+  interim:
+    path: C:\Users\diwan\Desktop\wrf-chem delhi v1\data\interim
+    files: 5
+    bytes: 361239055
+  processed:
+    path: C:\Users\diwan\Desktop\wrf-chem delhi v1\data\processed
+    files: 1
+    bytes: 4312
+  features:
+    path: C:\Users\diwan\Desktop\wrf-chem delhi v1\data\features
+    files: 6
+    bytes: 70828698
+row_counts:
+  station: 0
+  station_registry: 29
+  test: 0
+  features: 254736
+  train: 0
+  validation: 0
+bytes_total: 1385372345

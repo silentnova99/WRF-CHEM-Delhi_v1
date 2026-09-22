@@ -1,0 +1,470 @@
+generated_at: '2026-09-19T18:32:10Z'
+datasets:
+- source: cpcb
+  dataset_id: cpcb::INDIA_AQI_COMPLETE_20251126.csv
+  file: raw\cpcb\INDIA_AQI_COMPLETE_20251126.csv
+  size: 282627634
+  checksum: 46be5dccd99cf7293086294e5ab468f7e6f88d506bdc4c0f489c565f2850e08f
+  download_date: '2026-09-19T18:32:09Z'
+  license: CC-BY (CPCB data.g0v.in); see provenance records
+  provenance: local
+  rows: 3000
+  columns:
+  - City
+  - State
+  - Latitude
+  - Longitude
+  - Datetime
+  - Year
+  - Month
+  - Day
+  - Hour
+  - Day_of_Week
+  - Day_Name
+  - Week_of_Year
+  - Is_Weekend
+  - Quarter
+  - Season
+  - Time_of_Day
+  - Temp_2m_C
+  - Temp_80m_C
+  - Temp_120m_C
+  - Temp_180m_C
+  - Humidity_Percent
+  - Dew_Point_C
+  - Humidity_Category
+  - Wind_Speed_10m_kmh
+  - Wind_Speed_80m_kmh
+  - Wind_Speed_120m_kmh
+  - Wind_Dir_10m
+  - Wind_Gusts_kmh
+  - Wind_Category
+  - Wind_Stagnation
+  - Precipitation_mm
+  - Rain_mm
+  - Is_Raining
+  - Heavy_Rain
+  - Pressure_MSL_hPa
+  - Surface_Pressure_hPa
+  - Solar_Radiation_Wm2
+  - Direct_Radiation_Wm2
+  - Diffuse_Radiation_Wm2
+  - UV_Index
+  - Cloud_Cover_Percent
+  - Cloud_Low_Percent
+  - Cloud_Mid_Percent
+  - Cloud_High_Percent
+  - Is_Daytime
+  - Sunshine_Seconds
+  - PM2_5_ugm3
+  - PM10_ugm3
+  - PM_Ratio
+  - CO_ugm3
+  - NO2_ugm3
+  - SO2_ugm3
+  - O3_ugm3
+  - Dust_ugm3
+  - NH3_ugm3
+  - AOD
+  - US_AQI
+  - US_AQI_PM25
+  - US_AQI_PM10
+  - US_AQI_NO2
+  - US_AQI_O3
+  - US_AQI_CO
+  - EU_AQI
+  - EU_AQI_PM25
+  - EU_AQI_PM10
+  - AQI_Category
+  - PM25_Category_India
+  - Temp_Inversion
+  - Inversion_Strength_C
+  - Festival_Period
+  - Crop_Burning_Season
+  date_min: '2022-08-05 00:00:00+00:00'
+  date_max: '2022-12-07 23:00:00+00:00'
+  lat_min: 23.8315
+  lat_max: 23.8315
+  lon_min: 91.2868
+  lon_max: 91.2868
+  missing_percentage: 11.284
+- source: cpcb
+  dataset_id: cpcb::processed_aqi_data.csv
+  file: raw\cpcb\processed_aqi_data.csv
+  size: 42427320
+  checksum: 52592826574621dc5a247c4c518b379ac08d8a35543e1c22c92a5d41fbf1f339
+  download_date: '2026-09-19T18:32:09Z'
+  license: CC-BY (CPCB data.g0v.in); see provenance records
+  provenance: local
+  rows: 3000
+  columns:
+  - timestamp
+  - location_name
+  - location_lat
+  - location_lon
+  - co
+  - no2
+  - o3
+  - pm10
+  - pm25
+  - so2
+  - aqi
+  - aqi_category
+  - hour
+  - day
+  - month
+  - year
+  - day_of_week
+  - is_weekend
+  date_min: '2019-01-01 00:00:00+00:00'
+  date_max: '2019-01-25 23:00:00+00:00'
+  lat_min: 28.4089
+  lat_max: 28.7041
+  lon_min: 77.0266
+  lon_max: 77.4538
+  missing_percentage: 0.0
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f000.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f000.grib2
+  size: 5858
+  checksum: 1b9c1204bf53aeac3adf516a3f142efe074facc638b04788be9f818ddc608cc5
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f003.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f003.grib2
+  size: 5909
+  checksum: b2574b8e6952a912cb5c2e08714af669ce3826978ec66f02c8e9f430d3ff159c
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f006.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f006.grib2
+  size: 5910
+  checksum: 7fbd748b9641a5ee85b63697540bf0408160407403c0c69d72c0ab16b8c089ca
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f009.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f009.grib2
+  size: 5872
+  checksum: a2c9285f06e8f5a38dac07e847dc6c58378dfc3fe7a2477d69fbef4a0978ee98
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f012.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f012.grib2
+  size: 5846
+  checksum: 7fb1d865df70c916a2e7ad518a8da8f7407073572346319a12dda1e023c660b5
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f015.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f015.grib2
+  size: 5820
+  checksum: db00c69d5bcb563c6509e178d8128c5c5d02b5ca271306e55829898634035d96
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f018.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f018.grib2
+  size: 5784
+  checksum: 3bd7cb42ad6b5cd915c8444232cd7fa5a72a187cc282411dabdc0a5a39787bb5
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f021.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f021.grib2
+  size: 5772
+  checksum: 27a3f04de58c97a596e41eff2bc371df837d5de259b325d7c703007b9d01447d
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f024.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f024.grib2
+  size: 5684
+  checksum: 36d657452bcf062f46f68915844ed524a5130eb441122bc8f74e33ae5d0357c2
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f027.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f027.grib2
+  size: 5797
+  checksum: d041a76e313e0d4a576952c10060935d01aaf6ad8e27b5bd9bead947e4401098
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f030.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f030.grib2
+  size: 5747
+  checksum: 3a07ed7d93bbdf5439146da510b6c86ff4fb22e1cbdccdecddbaa0c424730872
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f033.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f033.grib2
+  size: 5860
+  checksum: e82e27657160cefe2cce22db119736df0617f88238509ea0e9c6176aef4a0ed4
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f036.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f036.grib2
+  size: 5884
+  checksum: a826147c36934a903bc762464db0ce77253c596a4df589762a613e61d7fc8335
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f039.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f039.grib2
+  size: 5859
+  checksum: d1728d3e2f5e3c248197dc9e28c84fbfbe736e3e33b3e220fbae26051c4cbd20
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f042.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f042.grib2
+  size: 5872
+  checksum: 137f4edd9b2dc17b8a4d7c6d9c34474fda52d671c90791fa10d702e4987c4bec
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f045.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f045.grib2
+  size: 5873
+  checksum: 6b4ebacdf76a933dbb41c50e7d3b73b8a3866a642752df4d06d8dbc69fd7e428
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f048.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f048.grib2
+  size: 5873
+  checksum: 6aff4c6afa21cf321f29094032e2d9d34a497052817a38d0dc319ea690823029
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f051.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f051.grib2
+  size: 5798
+  checksum: df60e2e50f1120743c7c2f7803644fa4fa63a5faf76cb36fdf12435931148603
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f054.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f054.grib2
+  size: 5823
+  checksum: 7e5f49657d084045e7d07ac55a3f24604589c39c265d72aba6ff0356a8955265
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f057.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f057.grib2
+  size: 5875
+  checksum: ffcc3c2e126803f991c9534d69328dddec4a75ab59639783a587fa06bea9a611
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f060.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f060.grib2
+  size: 5911
+  checksum: 0ae443533db62f6fe4d097fee37ac1bb6e4f531db024b47f3e465882b0397d67
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f063.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f063.grib2
+  size: 5823
+  checksum: 78673de683ffd37747e3cac96d594943e453ad7ad3968d1ff352b29904419e71
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f066.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f066.grib2
+  size: 5859
+  checksum: 9edf99f172b479d69e56380eeeaf1363e719e52da4d29e0841cde14e2b3fd979
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f069.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f069.grib2
+  size: 5860
+  checksum: 462b738c43033716b8bd6d8e3e7c7ccf596a7c39a589daf5a2e4adbc921fc50a
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: gfs
+  dataset_id: gfs::gfs.20260912.00.f072.grib2
+  file: raw\gfs\20260912z00\gfs.20260912.00.f072.grib2
+  size: 5785
+  checksum: 3c66ac9000e07922c0af4f8be5a0f616074aafbbd49e59f10f4e7569d6f34499
+  download_date: '2026-09-19T18:32:09Z'
+  license: US Government work (public domain)
+  provenance: nomads
+- source: firms
+  dataset_id: firms::fire_nrt_J1V-C2_565335.csv
+  file: raw\firms\fire_nrt_J1V-C2_565335.csv
+  size: 284783317
+  checksum: 576cfff1262cf317786e710cd6cfc5a4854f540e34ed423fbe6fdd9e3bee7c18
+  download_date: '2026-09-19T18:32:09Z'
+  license: NASA FIRMS open data (attribution required)
+  provenance: local
+  rows: 3000
+  columns:
+  - latitude
+  - longitude
+  - brightness
+  - scan
+  - track
+  - acq_date
+  - acq_time
+  - satellite
+  - instrument
+  - confidence
+  - version
+  - bright_t31
+  - frp
+  - daynight
+  date_min: '2024-11-01 00:00:00+00:00'
+  date_max: '2024-11-01 00:00:00+00:00'
+  lat_min: -41.8661
+  lat_max: 70.3993
+  lon_min: -54.719
+  lon_max: 179.5562
+  missing_percentage: 0.0
+- source: firms
+  dataset_id: firms::fire_nrt_M-C61_565334.csv
+  file: raw\firms\fire_nrt_M-C61_565334.csv
+  size: 62721569
+  checksum: 58efcf950e0113ed390e38137aced2ebcf62bc76fa7b9cecde7358768cda1ff3
+  download_date: '2026-09-19T18:32:10Z'
+  license: NASA FIRMS open data (attribution required)
+  provenance: local
+  rows: 3000
+  columns:
+  - latitude
+  - longitude
+  - brightness
+  - scan
+  - track
+  - acq_date
+  - acq_time
+  - satellite
+  - instrument
+  - confidence
+  - version
+  - bright_t31
+  - frp
+  - daynight
+  date_min: '2024-11-01 00:00:00+00:00'
+  date_max: '2024-11-01 00:00:00+00:00'
+  lat_min: -35.2711
+  lat_max: 62.115
+  lon_min: -124.9721
+  lon_max: 179.5399
+  missing_percentage: 0.0
+- source: firms
+  dataset_id: firms::fire_nrt_SV-C2_565336.csv
+  file: raw\firms\fire_nrt_SV-C2_565336.csv
+  size: 256637211
+  checksum: 1b108993ec0cb9dce1e859a8abde78403c17d10b65586410380bb901b6e8e0ca
+  download_date: '2026-09-19T18:32:10Z'
+  license: NASA FIRMS open data (attribution required)
+  provenance: local
+  rows: 3000
+  columns:
+  - latitude
+  - longitude
+  - brightness
+  - scan
+  - track
+  - acq_date
+  - acq_time
+  - satellite
+  - instrument
+  - confidence
+  - version
+  - bright_t31
+  - frp
+  - daynight
+  date_min: '2024-11-01 00:00:00+00:00'
+  date_max: '2024-11-01 00:00:00+00:00'
+  lat_min: -37.9748
+  lat_max: 70.3963
+  lon_min: -54.1981
+  lon_max: 178.9777
+  missing_percentage: 0.0
+- source: firms
+  dataset_id: firms::fire_nrt_SV-C2_634473.csv
+  file: raw\firms\fire_nrt_SV-C2_634473.csv
+  size: 23856038
+  checksum: 577bd4b14d9759ea760d5c38c8d8898b2439174959f64363ef72505c783518cc
+  download_date: '2026-09-19T18:32:10Z'
+  license: NASA FIRMS open data (attribution required)
+  provenance: local
+  rows: 3000
+  columns:
+  - latitude
+  - longitude
+  - brightness
+  - scan
+  - track
+  - acq_date
+  - acq_time
+  - satellite
+  - instrument
+  - confidence
+  - version
+  - bright_t31
+  - frp
+  - daynight
+  date_min: '2025-07-01 00:00:00+00:00'
+  date_max: '2025-07-01 00:00:00+00:00'
+  lat_min: -44.1573
+  lat_max: 70.4244
+  lon_min: -48.9263
+  lon_max: 175.2705
+  missing_percentage: 0.0
+- source: aod
+  dataset_id: aod::cams_aod_2025-09-19_2026-09-19.parquet
+  file: raw\aod\cams_aod_2025-09-19_2026-09-19.parquet
+  size: 101237
+  checksum: a2fba5ed802c9c33aa6958044660dda921421c12b44632e4600b6feb410d2623
+  download_date: '2026-09-19T18:32:10Z'
+  license: Copernicus Atmosphere Monitoring Service / Open-Meteo (CC-BY 4.0)
+  provenance: open_meteo_cams
+  rows: 52704
+  columns:
+  - observed_at_utc
+  - aod
+  - lat
+  - lon
+  date_min: '2025-09-19 00:00:00+00:00'
+  date_max: '2026-09-19 23:00:00+00:00'
+  lat_min: 28.2
+  lat_max: 28.4286
+  lon_min: 76.8
+  lon_max: 77.4667
+  missing_percentage: 0.0

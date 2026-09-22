@@ -1,0 +1,163 @@
+# VAYU-SETU — configuration for the data-acquisition and validation pipeline.
+# Sits on top of the existing WRF-Chem Delhi V1/V2 repo; reuses those engines.
+
+canonical:
+  timezone_utc: "UTC"
+  timezone_local: "Asia/Kolkata"
+  freq: "1h"
+  timeline_fmt: "%Y-%m-%d %H:00:00"
+  fhr_horizon: 72
+  fhr_step_hours: 1            # coupled hourly loop
+  gfs_fhr_step_hours: 3        # native GFS output step
+
+domain:
+  name: "delhi_ncr_4km"
+  lat_min: 28.2
+  lat_max: 29.0
+  lon_min: 76.8
+  lon_max: 77.6
+  dx_km: 4.0
+  dy_km: 4.0
+  crs: "EPSG:4326"
+  # nominal grid resolution note: native GFS 0.25deg (~28 km) is downscaled to the
+  # 4 km domain grid for visualization/emulator; this is NOT claimed as native 4 km physics.
+  native_met_res_km: 28.0
+  model_res_km: 4.0
+  visibility_res_km: 4.0
+
+lake:
+  root: "data"
+  layout:
+    raw: "data/raw/{source}"
+    interim_cleaned: "data/interim/cleaned/{source}"
+    interim_aligned: "data/interim/aligned"
+    interim_qc: "data/interim/quality_controlled"
+    processed_station: "data/processed/station"
+    processed_grid: "data/processed/grid"
+    processed_plume: "data/processed/plume"
+    processed_physics: "data/processed/physics"
+    features_train: "data/features/train"
+    features_validation: "data/features/validation"
+    features_test: "data/features/test"
+  parquet_compression: "zstd"
+  done_marker: "_DONE"
+
+download:
+  max_bytes: 2147483648        # 2 GiB safety guard per dataset (configurable)
+  retries: 3
+  retry_backoff_seconds: 2.0
+  timeout_seconds: 120
+  resumable: true
+  skip_if_checksum_matches: true
+
+registry_path: "reports/data_registry.yaml"
+manifest_path: "reports/dataset_manifest.yaml"
+qc_report_path: "reports/quality_report"
+size_report_path: "reports/dataset_size_report.yaml"
+leakage_report_path: "reports/leakage_report.yaml"
+validation_report_path: "reports/validation_report.yaml"
+
+sources:
+  cpcb:
+    enabled: true
+    primary: "local"                              # authoritative-derived local extracts
+    kaggle_candidate: "jaspreetsingh9652/delhi-air-quality-time-series-data-2025-to-2026-05"
+    authoritative_url: "airquality.cpcb.gov.in"
+    local_originals:
+      - "Datafloder/processed_aqi_data.csv"        # NCR 5-station hourly 2019-2024
+      - "Datafloder/INDIA_AQI_COMPLETE_20251126.csv" # 29-city hourly 2022-2025 + met + AOD
+    live_api: "data.gov.in OGD resource 3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69"
+    variables: ["PM2.5", "PM10", "O3", "NO2", "CO", "SO2"]
+    units: "ug/m3"
+    license: "CC-BY (CPCB data.g0v.in); see provenance records"
+    k_aod: 0.00023          # calibrated AOD-from-PM slope (fitted against real AOD where available)
+    max_value_ug_m3: 2000
+    explicit_lower_bound: 0.0
+    mad_cutoff_sigma: 5.0
+  gfs:
+    enabled: true
+    primary: "nomads"                             # NOMADS 0.25 pgrb2 filter (authoritative)
+    kaggle_candidate: null                        # none credible on Kaggle
+    authoritative_url: "https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl"
+    history_archive: "https://data.ucar.edu/dataset/ncep-gfs-0-25-degree-global-forecast-grids-historical-archive"
+    variables: ["TMP sfc/925/850/700", "RH 2m", "UGRD/VGRD 10m/925/850", "PRMSL", "HGT"]
+    units: "K / % / m/s / hPa / m"
+    license: "US Government work (public domain)"
+  firms:
+    enabled: true
+    primary: "local"                              # real NASA FIRMS NRT exports
+    kaggle_candidate: "sherkhan15/indian-wildfire-nasa-dataset-8-years"
+    authoritative_url: "https://firms.modaps.eosdis.nasa.gov"
+    local_originals:
+      - "Datafloder/fire_nrt_SV-C2_565336.csv"     # VIIRS S-NPP
+      - "Datafloder/fire_nrt_J1V-C2_565335.csv"    # VIIRS NOAA-20
+      - "Datafloder/fire_nrt_M-C61_565334.csv"     # MODIS
+      - "Datafloder/fire_nrt_SV-C2_634473.csv"     # VIIRS S-NPP (later window)
+    variables: ["latitude", "longitude", "acq_date", "acq_time", "FRP", "confidence", "satellite", "instrument", "daynight"]
+    units: "deg / UTC / MW / pct"
+    license: "NASA FIRMS open data (attribution required)"
+    frp_range_mw: [0.0, 5000.0]
+    confidence_min: 20
+  aod:
+    enabled: true
+    primary: "open_meteo_cams"                    # CAMS aerosol optical depth, keyless, CC-BY
+    kaggle_candidate: null                        # none credible on Kaggle
+    authoritative_url: "https://air-quality-api.open-meteo.com/v1/air-quality"
+    variables: ["aerosol_optical_depth"]
+    units: "dimensionless at 500+nm band"
+    license: "Copernicus Atmosphere Monitoring Service / Open-Meteo (CC-BY 4.0)"
+    max_aod: 3.0
+  emissions:
+    enabled: false
+    primary: "referenced"                         # authoritative inventories referenced, not downloaded
+    kaggle_candidate: null
+    authoritative_url:
+      - "https://edgar.jrc.ec.europa.eu/dataset_htap_v3"
+      - "https://urbanemissions.info/india-air-quality/gridded-emission-inventories-for-india/"
+    variables: ["PM2.5", "PM10", "NOx", "SO2", "CO", "VOC", "NH3"]
+    license: "HTAP v3 (EC/REAS, Zenodo CC-BY); UEinfo open"
+    note: "Inventory too large for prototype (HTAP ~200GB). Fire emissions are derived from FIRMS FRP at runtime; urban baseline from configs/emission_factors.yaml."
+
+physics:
+  inversion:
+    levels_hpa: [1000, 925, 850, 700]
+    lapse_flag_rule: "T925 - T2m > 3.0 C AND surface wind < 4.0 m/s"
+  richardson:
+    g: 9.81
+    threshold_unstable: 0.0
+    threshold_neutral: [0.0, 0.25]
+    threshold_stable: 0.25
+    threshold_very_stable: 1.0
+  pblh:
+    pbl_min: 150.0        # m, hard floor (matches v2 feedback engine)
+    aod_attenuation_coeff: 80.0    # m of PBL suppression per unit AOD (configurable, literature-order magnitude)
+    temp_feedback_coeff: 2.0       # C surface cooling per 100 W/m2 aerosol dimming (configurable)
+    radiation_atten_scale: 1.0     # W/m2 diffuse dimming per AOD at solar noon
+    sw_reduction_coeff: 0.30       # AOD -> fractional shortwave loss (V2 default)
+    pbl_suppression_coeff: 0.25    # SW loss -> max PBL suppression factor (V2 default)
+    retention_max: 0.35            # PBL suppression -> retained surface PM fraction
+    pm_baseline: 80.0              # ug/m3 PM2.5 reference where feedback saturates
+    pblh_per_cooling: 120.0        # m PBL drop per degC surface cooling
+  plume:
+    decay_hours: 6.0
+    wooster_fuel_kg_per_mj: 0.368
+  coupling:
+    enabled_default: true
+    max_iterations: 3
+    convergence_tol: 0.5    # ug/m3
+
+ml:
+  seed: 42
+  train_years: [2019, 2020, 2021, 2022, 2023]
+  validation_years: [2023]
+  test_year: [2023]          # chronological: last 12 months of the real series
+  horizon: 72
+  lags_max_hours: 48
+  stgnn_hidden: 64
+  stgnn_layers: 2
+  xgb_n_estimators: 400
+  xgb_max_depth: 6
+  conformal_alpha: 0.1
+
+validate:
+  metrics: ["rmse", "mae", "bias", "r", "r2", "interval_coverage", "interval_width"]

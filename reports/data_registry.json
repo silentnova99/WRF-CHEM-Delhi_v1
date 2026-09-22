@@ -1,0 +1,47 @@
+{
+  "generated_at": "2026-09-19T18:31:56Z",
+  "sources": {
+    "cpcb": {
+      "source_name": "cpcb",
+      "local_path": "C:\\Users\\diwan\\Desktop\\wrf-chem delhi v1\\data\\raw\\cpcb",
+      "checksum": "46be5dccd99cf7293086294e5ab468f7e6f88d506bdc4c0f489c565f2850e08f",
+      "download_timestamp": "2026-09-19T18:31:45Z",
+      "status": "available::local"
+    },
+    "firms": {
+      "source_name": "firms",
+      "local_path": "C:\\Users\\diwan\\Desktop\\wrf-chem delhi v1\\data\\raw\\firms",
+      "checksum": "576cfff1262cf317786e710cd6cfc5a4854f540e34ed423fbe6fdd9e3bee7c18",
+      "download_timestamp": "2026-09-19T18:31:45Z",
+      "status": "available::local_firms_nrt"
+    },
+    "gfs": {
+      "source_name": "gfs",
+      "local_path": "C:\\Users\\diwan\\Desktop\\wrf-chem delhi v1\\data\\raw\\gfs\\20260912z00",
+      "download_timestamp": "2026-09-19T18:31:45Z",
+      "temporal_start": "2026-09-19 00:00:00+00:00",
+      "spatial_extent": "lat 27.4-29.8, lon 76.0-78.39999999999999",
+      "variables": "var_TMP=on&var_UGRD=on&var_VGRD=on&var_PRMSL=on&var_RH=on&var_HGT=on (lev_2_m_above_ground=on&lev_10_m_above_ground=on&lev_mean_sea_level=on&lev_925_mb=on&lev_850_mb=on&lev_700_mb=on)",
+      "status": "available::live",
+      "checksum": "C:\\Users\\diwan\\Desktop\\wrf-chem delhi v1\\data\\raw\\gfs\\20260912z00"
+    },
+    "aod": {
+      "source_name": "aod",
+      "local_path": "C:\\Users\\diwan\\Desktop\\wrf-chem delhi v1\\data\\raw\\aod",
+      "download_timestamp": "2026-09-19T18:31:45Z",
+      "temporal_start": "2025-09-19",
+      "temporal_end": "2026-09-19",
+      "spatial_extent": "Delhi NCR sample points",
+      "variables": [
+        "aerosol_optical_depth"
+      ],
+      "status": "available::live",
+      "checksum": "C:\\Users\\diwan\\Desktop\\wrf-chem delhi v1\\data\\raw\\aod"
+    },
+    "emissions": {
+      "source_name": "emissions",
+      "status": "referenced_not_downloaded",
+      "note": "HTAP v3 / UEinfo authoritative; fire emissions from FRP at runtime"
+    }
+  }
+}

@@ -25,6 +25,7 @@ ENV/
 
 # -------- Data, secrets & local config --------
 data/
+Datafloder/
 secrets/
 keys/
 .env

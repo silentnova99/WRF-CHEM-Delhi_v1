@@ -1,0 +1,51 @@
+{
+  "generated_at": "2026-09-19T13:47:59Z",
+  "checks": [
+    {
+      "check": "chronology train < validation",
+      "status": "OK",
+      "detail": "train.end=2023-11-26 21:00:00 vs validation.start=2023-11-26 22:00:00"
+    },
+    {
+      "check": "chronology validation < test",
+      "status": "OK",
+      "detail": "validation.end=2024-11-26 21:00:00 vs test.start=2024-11-26 22:00:00"
+    },
+    {
+      "check": "feature lag bound",
+      "status": "OK",
+      "detail": "max lag used = 48 h (forward-fill only)"
+    },
+    {
+      "check": "normalization on train only",
+      "status": "OK",
+      "detail": "standardize_on_train uses train mean/std only"
+    },
+    {
+      "check": "satellite (AOD) no-future rule",
+      "status": "OK",
+      "detail": "AOD aligned at valid_time; lagged obs channels shift(+1) only"
+    }
+  ],
+  "ok": true,
+  "timeline": [
+    {
+      "split": "train",
+      "start": "2022-08-05 00:00:00",
+      "end": "2023-11-26 21:00:00",
+      "rows": 333326
+    },
+    {
+      "split": "validation",
+      "start": "2023-11-26 22:00:00",
+      "end": "2024-11-26 21:00:00",
+      "rows": 254736
+    },
+    {
+      "split": "test",
+      "start": "2024-11-26 22:00:00",
+      "end": "2025-11-26 23:00:00",
+      "rows": 254098
+    }
+  ]
+}

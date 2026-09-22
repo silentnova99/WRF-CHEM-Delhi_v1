@@ -1,0 +1,903 @@
+generated_at: '2026-09-19T18:34:24Z'
+split:
+- split: train
+  start: '2022-08-05 00:00:00'
+  end: '2023-11-26 21:00:00'
+  rows: 333326
+- split: validation
+  start: '2023-11-26 22:00:00'
+  end: '2024-11-26 21:00:00'
+  rows: 254736
+- split: test
+  start: '2024-11-26 22:00:00'
+  end: '2025-11-26 23:00:00'
+  rows: 254098
+leakage_checks:
+- check: chronology train < validation
+  status: OK
+  detail: train.end=2023-11-26 21:00:00 vs validation.start=2023-11-26 22:00:00
+- check: chronology validation < test
+  status: OK
+  detail: validation.end=2024-11-26 21:00:00 vs test.start=2024-11-26 22:00:00
+- check: feature lag bound
+  status: OK
+  detail: max lag used = 48 h (forward-fill only)
+- check: normalization on train only
+  status: OK
+  detail: standardize_on_train uses train mean/std only
+- check: satellite (AOD) no-future rule
+  status: OK
+  detail: AOD aligned at valid_time; lagged obs channels shift(+1) only
+models:
+  persistence:
+    pm25:
+      mae: 24.607758620689655
+      rmse: 39.21765609783977
+    pm10:
+      mae: 25.695354406130267
+      rmse: 41.11723968635646
+    o3:
+      mae: 38.5742337164751
+      rmse: 52.08981798711754
+  climatology:
+    pm25:
+      mae: 18.543195128626163
+      rmse: 25.412925253942486
+    pm10:
+      mae: 33.00018199233717
+      rmse: 44.57507283807646
+    o3:
+      mae: 26.513861521620143
+      rmse: 33.527578047299
+  xgb_direct:
+    pm25:
+      mae: 21.65136498995268
+      rmse: 30.5023066019146
+    pm10:
+      mae: 36.164668315212275
+      rmse: 50.251595593017576
+    o3:
+      mae: 38.97694183035372
+      rmse: 47.778416748271134
+  vayu-setu:
+    pm25:
+      mbe: 4.844
+      mae: 8.028
+      rmse: 13.86
+      spe: 0.033
+      coverage_100: 96.36
+      conformal_halfwidth: 1.0
+    pm10:
+      mbe: 0.407
+      mae: 7.197
+      rmse: 13.319
+      spe: 0.027
+      coverage_100: 99.14
+      conformal_halfwidth: 1.641
+    o3:
+      mbe: 3.287
+      mae: 12.304
+      rmse: 17.078
+      spe: 0.078
+      coverage_100: 98.52
+      conformal_halfwidth: 1.545
+stations:
+  pm25:
+    stations:
+    - n: 72
+      rmse: 12.046
+      mae: 8.184
+      bias: 2.212
+      correlation: 0.865
+      r2: 0.735
+      interval_coverage_100: 98.61111111111111
+      station: Agartala
+    - n: 72
+      rmse: 10.482
+      mae: 6.896
+      bias: 4.246
+      correlation: 0.697
+      r2: 0.352
+      interval_coverage_100: 98.61111111111111
+      station: Ahmedabad
+    - n: 72
+      rmse: 2.471
+      mae: 1.911
+      bias: -0.107
+      correlation: 0.74
+      r2: 0.514
+      interval_coverage_100: 100.0
+      station: Aizawl
+    - n: 72
+      rmse: 7.031
+      mae: 6.023
+      bias: 5.696
+      correlation: 0.768
+      r2: -0.255
+      interval_coverage_100: 100.0
+      station: Bengaluru
+    - n: 72
+      rmse: 7.326
+      mae: 5.62
+      bias: 4.995
+      correlation: 0.803
+      r2: 0.319
+      interval_coverage_100: 100.0
+      station: Bhopal
+    - n: 72
+      rmse: 15.103
+      mae: 9.752
+      bias: 0.181
+      correlation: 0.922
+      r2: 0.85
+      interval_coverage_100: 97.22222222222221
+      station: Bhubaneswar
+    - n: 72
+      rmse: 9.935
+      mae: 7.575
+      bias: 6.271
+      correlation: 0.579
+      r2: -0.282
+      interval_coverage_100: 100.0
+      station: Chandigarh
+    - n: 72
+      rmse: 6.581
+      mae: 5.279
+      bias: 0.368
+      correlation: 0.95
+      r2: 0.888
+      interval_coverage_100: 100.0
+      station: Chennai
+    - n: 72
+      rmse: 10.491
+      mae: 7.792
+      bias: 6.773
+      correlation: 0.685
+      r2: 0.05
+      interval_coverage_100: 98.61111111111111
+      station: Dehradun
+    - n: 72
+      rmse: 22.349
+      mae: 17.497
+      bias: 12.509
+      correlation: 0.875
+      r2: 0.657
+      interval_coverage_100: 81.94444444444444
+      station: Delhi
+    - n: 72
+      rmse: 7.271
+      mae: 5.655
+      bias: 2.207
+      correlation: 0.833
+      r2: 0.636
+      interval_coverage_100: 98.61111111111111
+      station: Gangtok
+    - n: 72
+      rmse: 26.99
+      mae: 20.419
+      bias: 15.727
+      correlation: 0.802
+      r2: 0.454
+      interval_coverage_100: 77.77777777777779
+      station: Gurugram
+    - n: 72
+      rmse: 4.587
+      mae: 3.397
+      bias: 1.793
+      correlation: 0.853
+      r2: 0.677
+      interval_coverage_100: 100.0
+      station: Guwahati
+    - n: 72
+      rmse: 9.147
+      mae: 6.762
+      bias: 6.283
+      correlation: 0.666
+      r2: -0.151
+      interval_coverage_100: 98.61111111111111
+      station: Hyderabad
+    - n: 72
+      rmse: 7.718
+      mae: 5.548
+      bias: 3.384
+      correlation: 0.692
+      r2: 0.354
+      interval_coverage_100: 100.0
+      station: Imphal
+    - n: 72
+      rmse: 2.295
+      mae: 1.838
+      bias: 0.518
+      correlation: 0.726
+      r2: 0.479
+      interval_coverage_100: 100.0
+      station: Itanagar
+    - n: 72
+      rmse: 9.701
+      mae: 7.758
+      bias: 5.028
+      correlation: 0.744
+      r2: 0.39
+      interval_coverage_100: 98.61111111111111
+      station: Jaipur
+    - n: 72
+      rmse: 4.826
+      mae: 3.603
+      bias: 2.635
+      correlation: 0.804
+      r2: 0.495
+      interval_coverage_100: 100.0
+      station: Kohima
+    - n: 72
+      rmse: 27.647
+      mae: 16.374
+      bias: 7.146
+      correlation: 0.888
+      r2: 0.764
+      interval_coverage_100: 94.44444444444444
+      station: Kolkata
+    - n: 72
+      rmse: 21.363
+      mae: 15.455
+      bias: 5.497
+      correlation: 0.847
+      r2: 0.672
+      interval_coverage_100: 84.72222222222221
+      station: Lucknow
+    - n: 72
+      rmse: 5.177
+      mae: 3.637
+      bias: 2.106
+      correlation: 0.668
+      r2: 0.047
+      interval_coverage_100: 100.0
+      station: Mumbai
+    - n: 72
+      rmse: 7.861
+      mae: 4.752
+      bias: 3.67
+      correlation: 0.724
+      r2: 0.376
+      interval_coverage_100: 100.0
+      station: Panaji
+    - n: 72
+      rmse: 37.902
+      mae: 27.074
+      bias: 24.634
+      correlation: 0.807
+      r2: 0.395
+      interval_coverage_100: 70.83333333333334
+      station: Patna
+    - n: 72
+      rmse: 12.069
+      mae: 8.55
+      bias: 6.723
+      correlation: 0.818
+      r2: 0.516
+      interval_coverage_100: 98.61111111111111
+      station: Raipur
+    - n: 72
+      rmse: 10.749
+      mae: 8.436
+      bias: 4.778
+      correlation: 0.963
+      r2: 0.891
+      interval_coverage_100: 98.61111111111111
+      station: Ranchi
+    - n: 72
+      rmse: 3.262
+      mae: 2.538
+      bias: -0.698
+      correlation: 0.668
+      r2: 0.324
+      interval_coverage_100: 100.0
+      station: Shillong
+    - n: 72
+      rmse: 9.281
+      mae: 7.276
+      bias: 3.78
+      correlation: 0.456
+      r2: -0.037
+      interval_coverage_100: 100.0
+      station: Shimla
+    - n: 72
+      rmse: 3.942
+      mae: 2.805
+      bias: 0.391
+      correlation: 0.801
+      r2: 0.521
+      interval_coverage_100: 100.0
+      station: Thiruvananthapuram
+    - n: 72
+      rmse: 6.286
+      mae: 4.415
+      bias: 1.733
+      correlation: 0.919
+      r2: 0.832
+      interval_coverage_100: 98.61111111111111
+      station: Visakhapatnam
+  pm10:
+    stations:
+    - n: 72
+      rmse: 13.708
+      mae: 8.061
+      bias: -0.602
+      correlation: 0.841
+      r2: 0.677
+      interval_coverage_100: 98.61111111111111
+      station: Agartala
+    - n: 72
+      rmse: 11.11
+      mae: 6.412
+      bias: 1.069
+      correlation: 0.683
+      r2: 0.308
+      interval_coverage_100: 98.61111111111111
+      station: Ahmedabad
+    - n: 72
+      rmse: 4.506
+      mae: 3.737
+      bias: -3.142
+      correlation: 0.581
+      r2: -0.649
+      interval_coverage_100: 100.0
+      station: Aizawl
+    - n: 72
+      rmse: 5.444
+      mae: 3.831
+      bias: 1.893
+      correlation: 0.752
+      r2: 0.268
+      interval_coverage_100: 100.0
+      station: Bengaluru
+    - n: 72
+      rmse: 7.2
+      mae: 4.197
+      bias: 1.203
+      correlation: 0.696
+      r2: 0.366
+      interval_coverage_100: 100.0
+      station: Bhopal
+    - n: 72
+      rmse: 18.297
+      mae: 9.69
+      bias: -4.111
+      correlation: 0.916
+      r2: 0.818
+      interval_coverage_100: 98.61111111111111
+      station: Bhubaneswar
+    - n: 72
+      rmse: 8.372
+      mae: 5.871
+      bias: 2.441
+      correlation: 0.626
+      r2: 0.04
+      interval_coverage_100: 100.0
+      station: Chandigarh
+    - n: 72
+      rmse: 7.383
+      mae: 5.273
+      bias: -1.351
+      correlation: 0.945
+      r2: 0.884
+      interval_coverage_100: 100.0
+      station: Chennai
+    - n: 72
+      rmse: 10.048
+      mae: 5.894
+      bias: 1.657
+      correlation: 0.592
+      r2: 0.16
+      interval_coverage_100: 98.61111111111111
+      station: Dehradun
+    - n: 72
+      rmse: 22.332
+      mae: 18.178
+      bias: 2.536
+      correlation: 0.825
+      r2: 0.656
+      interval_coverage_100: 98.61111111111111
+      station: Delhi
+    - n: 72
+      rmse: 8.126
+      mae: 5.445
+      bias: -0.374
+      correlation: 0.765
+      r2: 0.574
+      interval_coverage_100: 100.0
+      station: Gangtok
+    - n: 72
+      rmse: 24.062
+      mae: 17.432
+      bias: 2.761
+      correlation: 0.782
+      r2: 0.561
+      interval_coverage_100: 97.22222222222221
+      station: Gurugram
+    - n: 72
+      rmse: 4.704
+      mae: 3.602
+      bias: -0.069
+      correlation: 0.826
+      r2: 0.671
+      interval_coverage_100: 100.0
+      station: Guwahati
+    - n: 72
+      rmse: 8.118
+      mae: 4.95
+      bias: 2.668
+      correlation: 0.661
+      r2: 0.128
+      interval_coverage_100: 98.61111111111111
+      station: Hyderabad
+    - n: 72
+      rmse: 7.557
+      mae: 5.195
+      bias: 1.011
+      correlation: 0.658
+      r2: 0.39
+      interval_coverage_100: 100.0
+      station: Imphal
+    - n: 72
+      rmse: 3.197
+      mae: 2.313
+      bias: -1.486
+      correlation: 0.683
+      r2: 0.04
+      interval_coverage_100: 100.0
+      station: Itanagar
+    - n: 72
+      rmse: 10.139
+      mae: 7.142
+      bias: 0.534
+      correlation: 0.707
+      r2: 0.353
+      interval_coverage_100: 98.61111111111111
+      station: Jaipur
+    - n: 72
+      rmse: 4.715
+      mae: 3.339
+      bias: 0.302
+      correlation: 0.723
+      r2: 0.5
+      interval_coverage_100: 100.0
+      station: Kohima
+    - n: 72
+      rmse: 28.244
+      mae: 13.98
+      bias: 2.002
+      correlation: 0.877
+      r2: 0.767
+      interval_coverage_100: 98.61111111111111
+      station: Kolkata
+    - n: 72
+      rmse: 21.873
+      mae: 14.441
+      bias: -0.72
+      correlation: 0.843
+      r2: 0.668
+      interval_coverage_100: 97.22222222222221
+      station: Lucknow
+    - n: 72
+      rmse: 6.657
+      mae: 4.16
+      bias: -0.699
+      correlation: 0.646
+      r2: -0.364
+      interval_coverage_100: 100.0
+      station: Mumbai
+    - n: 72
+      rmse: 9.016
+      mae: 4.917
+      bias: 1.658
+      correlation: 0.68
+      r2: 0.189
+      interval_coverage_100: 100.0
+      station: Panaji
+    - n: 72
+      rmse: 28.126
+      mae: 18.442
+      bias: 8.693
+      correlation: 0.853
+      r2: 0.689
+      interval_coverage_100: 95.83333333333334
+      station: Patna
+    - n: 72
+      rmse: 14.273
+      mae: 6.57
+      bias: 0.533
+      correlation: 0.741
+      r2: 0.392
+      interval_coverage_100: 98.61111111111111
+      station: Raipur
+    - n: 72
+      rmse: 12.461
+      mae: 8.267
+      bias: -2.661
+      correlation: 0.942
+      r2: 0.88
+      interval_coverage_100: 98.61111111111111
+      station: Ranchi
+    - n: 72
+      rmse: 4.489
+      mae: 3.488
+      bias: -2.752
+      correlation: 0.641
+      r2: -0.246
+      interval_coverage_100: 100.0
+      station: Shillong
+    - n: 72
+      rmse: 8.392
+      mae: 5.687
+      bias: 0.114
+      correlation: 0.548
+      r2: 0.106
+      interval_coverage_100: 100.0
+      station: Shimla
+    - n: 72
+      rmse: 5.733
+      mae: 3.709
+      bias: -1.322
+      correlation: 0.635
+      r2: 0.078
+      interval_coverage_100: 100.0
+      station: Thiruvananthapuram
+    - n: 72
+      rmse: 8.477
+      mae: 4.484
+      bias: 0.025
+      correlation: 0.881
+      r2: 0.757
+      interval_coverage_100: 98.61111111111111
+      station: Visakhapatnam
+  o3:
+    stations:
+    - n: 72
+      rmse: 17.55
+      mae: 13.115
+      bias: 4.719
+      correlation: 0.926
+      r2: 0.822
+      interval_coverage_100: 97.22222222222221
+      station: Agartala
+    - n: 72
+      rmse: 18.443
+      mae: 12.327
+      bias: -7.786
+      correlation: 0.945
+      r2: 0.862
+      interval_coverage_100: 95.83333333333334
+      station: Ahmedabad
+    - n: 72
+      rmse: 19.101
+      mae: 13.528
+      bias: 0.21
+      correlation: 0.855
+      r2: 0.593
+      interval_coverage_100: 95.83333333333334
+      station: Aizawl
+    - n: 72
+      rmse: 15.145
+      mae: 10.103
+      bias: 4.382
+      correlation: 0.787
+      r2: 0.437
+      interval_coverage_100: 98.61111111111111
+      station: Bengaluru
+    - n: 72
+      rmse: 10.769
+      mae: 7.177
+      bias: 2.139
+      correlation: 0.951
+      r2: 0.855
+      interval_coverage_100: 98.61111111111111
+      station: Bhopal
+    - n: 72
+      rmse: 11.949
+      mae: 8.991
+      bias: 3.588
+      correlation: 0.957
+      r2: 0.867
+      interval_coverage_100: 98.61111111111111
+      station: Bhubaneswar
+    - n: 72
+      rmse: 16.231
+      mae: 11.036
+      bias: 3.591
+      correlation: 0.965
+      r2: 0.925
+      interval_coverage_100: 98.61111111111111
+      station: Chandigarh
+    - n: 72
+      rmse: 19.557
+      mae: 14.297
+      bias: 4.855
+      correlation: 0.792
+      r2: 0.596
+      interval_coverage_100: 98.61111111111111
+      station: Chennai
+    - n: 72
+      rmse: 16.51
+      mae: 9.476
+      bias: 6.102
+      correlation: 0.966
+      r2: 0.919
+      interval_coverage_100: 97.22222222222221
+      station: Dehradun
+    - n: 72
+      rmse: 19.397
+      mae: 15.871
+      bias: 4.371
+      correlation: 0.951
+      r2: 0.899
+      interval_coverage_100: 100.0
+      station: Delhi
+    - n: 72
+      rmse: 15.98
+      mae: 11.325
+      bias: 2.812
+      correlation: 0.845
+      r2: 0.411
+      interval_coverage_100: 98.61111111111111
+      station: Gangtok
+    - n: 72
+      rmse: 23.652
+      mae: 17.423
+      bias: -0.082
+      correlation: 0.941
+      r2: 0.88
+      interval_coverage_100: 94.44444444444444
+      station: Gurugram
+    - n: 72
+      rmse: 16.021
+      mae: 12.315
+      bias: 0.602
+      correlation: 0.912
+      r2: 0.746
+      interval_coverage_100: 100.0
+      station: Guwahati
+    - n: 72
+      rmse: 16.904
+      mae: 11.194
+      bias: 8.775
+      correlation: 0.835
+      r2: 0.533
+      interval_coverage_100: 98.61111111111111
+      station: Hyderabad
+    - n: 72
+      rmse: 19.636
+      mae: 15.578
+      bias: -2.11
+      correlation: 0.857
+      r2: 0.525
+      interval_coverage_100: 98.61111111111111
+      station: Imphal
+    - n: 72
+      rmse: 13.92
+      mae: 9.598
+      bias: 2.034
+      correlation: 0.913
+      r2: 0.758
+      interval_coverage_100: 100.0
+      station: Itanagar
+    - n: 72
+      rmse: 18.491
+      mae: 15.648
+      bias: 5.123
+      correlation: 0.93
+      r2: 0.848
+      interval_coverage_100: 100.0
+      station: Jaipur
+    - n: 72
+      rmse: 14.377
+      mae: 10.679
+      bias: -0.82
+      correlation: 0.911
+      r2: 0.76
+      interval_coverage_100: 100.0
+      station: Kohima
+    - n: 72
+      rmse: 22.006
+      mae: 17.007
+      bias: 8.863
+      correlation: 0.93
+      r2: 0.838
+      interval_coverage_100: 97.22222222222221
+      station: Kolkata
+    - n: 72
+      rmse: 14.825
+      mae: 11.619
+      bias: 3.626
+      correlation: 0.964
+      r2: 0.924
+      interval_coverage_100: 100.0
+      station: Lucknow
+    - n: 72
+      rmse: 19.051
+      mae: 14.304
+      bias: -2.669
+      correlation: 0.935
+      r2: 0.867
+      interval_coverage_100: 98.61111111111111
+      station: Mumbai
+    - n: 72
+      rmse: 14.296
+      mae: 11.621
+      bias: -1.799
+      correlation: 0.942
+      r2: 0.881
+      interval_coverage_100: 100.0
+      station: Panaji
+    - n: 72
+      rmse: 19.441
+      mae: 15.101
+      bias: 8.098
+      correlation: 0.955
+      r2: 0.889
+      interval_coverage_100: 98.61111111111111
+      station: Patna
+    - n: 72
+      rmse: 13.343
+      mae: 9.193
+      bias: 2.014
+      correlation: 0.953
+      r2: 0.906
+      interval_coverage_100: 98.61111111111111
+      station: Raipur
+    - n: 72
+      rmse: 20.048
+      mae: 15.443
+      bias: 12.499
+      correlation: 0.885
+      r2: 0.626
+      interval_coverage_100: 98.61111111111111
+      station: Ranchi
+    - n: 72
+      rmse: 14.435
+      mae: 12.32
+      bias: 2.303
+      correlation: 0.902
+      r2: 0.645
+      interval_coverage_100: 100.0
+      station: Shillong
+    - n: 72
+      rmse: 13.11
+      mae: 8.279
+      bias: 4.234
+      correlation: 0.961
+      r2: 0.915
+      interval_coverage_100: 98.61111111111111
+      station: Shimla
+    - n: 72
+      rmse: 14.382
+      mae: 9.616
+      bias: 6.368
+      correlation: 0.848
+      r2: 0.63
+      interval_coverage_100: 98.61111111111111
+      station: Thiruvananthapuram
+    - n: 72
+      rmse: 18.988
+      mae: 12.639
+      bias: 9.29
+      correlation: 0.764
+      r2: 0.3
+      interval_coverage_100: 98.61111111111111
+      station: Visakhapatnam
+episodes:
+  pm25:
+  - group: inversion
+    present: false
+  - group: biomass_burning
+    present: true
+    n: 2088
+    rmse: 13.86
+    mae: 8.028
+    bias: 4.844
+    correlation: 0.949
+    r2: 0.881
+  - group: high_aod
+    present: true
+    n: 262
+    rmse: 25.566
+    mae: 14.551
+    bias: 12.608
+    correlation: 0.91
+    r2: 0.761
+  - group: stagnant_wind
+    present: true
+    n: 150
+    rmse: 22.454
+    mae: 12.033
+    bias: 7.972
+    correlation: 0.917
+    r2: 0.816
+  pm10:
+  - group: inversion
+    present: false
+  - group: biomass_burning
+    present: true
+    n: 2088
+    rmse: 13.319
+    mae: 7.197
+    bias: 0.407
+    correlation: 0.949
+    r2: 0.9
+  - group: high_aod
+    present: true
+    n: 262
+    rmse: 23.357
+    mae: 11.404
+    bias: 4.011
+    correlation: 0.91
+    r2: 0.82
+  - group: stagnant_wind
+    present: true
+    n: 150
+    rmse: 23.443
+    mae: 10.499
+    bias: 0.652
+    correlation: 0.909
+    r2: 0.815
+  o3:
+  - group: inversion
+    present: false
+  - group: biomass_burning
+    present: true
+    n: 2088
+    rmse: 17.078
+    mae: 12.304
+    bias: 3.287
+    correlation: 0.939
+    r2: 0.877
+  - group: high_aod
+    present: true
+    n: 262
+    rmse: 19.502
+    mae: 14.633
+    bias: 10.82
+    correlation: 0.94
+    r2: 0.832
+  - group: stagnant_wind
+    present: true
+    n: 150
+    rmse: 13.861
+    mae: 9.92
+    bias: 3.298
+    correlation: 0.96
+    r2: 0.916
+ablation:
+  coupled_rmse: 14.189645707593504
+  uncoupled_rmse: 14.04583762779889
+  rmse_delta_pct: -1.024
+engine_ablation:
+  coupled_pm25_mean_72h: 543.12
+  uncoupled_pm25_mean_72h: 522.45
+  feedback_mean: 0.0089
+data_size:
+  generated_at: '2026-09-19T18:34:24Z'
+  tiers:
+    raw:
+      path: C:\Users\diwan\Desktop\wrf-chem delhi v1\data\raw
+      files: 32
+      bytes: 953300280
+    interim:
+      path: C:\Users\diwan\Desktop\wrf-chem delhi v1\data\interim
+      files: 5
+      bytes: 361239055
+    processed:
+      path: C:\Users\diwan\Desktop\wrf-chem delhi v1\data\processed
+      files: 1
+      bytes: 4312
+    features:
+      path: C:\Users\diwan\Desktop\wrf-chem delhi v1\data\features
+      files: 6
+      bytes: 70828698
+  row_counts:
+    station: 0
+    station_registry: 29
+    test: 0
+    features: 254736
+    train: 0
+    validation: 0
+  bytes_total: 1385372345
